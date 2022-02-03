@@ -9,12 +9,12 @@ NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 prctiles = 5:10:95; 
 
-numReplicates = 1;
+numReplicates = 10;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  5
+for dataIdx =  [5]
 
     % ===================== Load and Preprocess Data ======================
     

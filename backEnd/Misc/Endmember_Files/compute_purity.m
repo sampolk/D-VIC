@@ -122,7 +122,7 @@ elseif strcmp(Hyperparameters.EndmemberParams.Algorithm, 'ManyAVMAX')
     endmembers = zeros([size(hyperAvmax(X', K, 1)), Hyperparameters.EndmemberParams.NumReplicates]);
     volumes = zeros(Hyperparameters.EndmemberParams.NumReplicates,1);
     parfor i = 1:Hyperparameters.EndmemberParams.NumReplicates
-        [endmembers(:,:,i), volumes(i)] = hyperAvmax(X', K, 1);
+        [endmembers(:,:,i), volumes(i)] = hyperAvmax(X', K, 0);
     end
     [~,i] = max(volumes);
     endmembers = endmembers(:,:,i);

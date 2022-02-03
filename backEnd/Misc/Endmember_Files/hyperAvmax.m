@@ -91,7 +91,7 @@ for zeta = 1:maxitr
         U(1:q-1,j) = M(:,l);   % Update endmember matrix
         U_idx(j)   = l;        % Keep track of indices   
     end
-    U = ((U')./vecnorm(U', 2,2))';
+%     U = ((U')./vecnorm(U', 2,2))';
 
     % Step 5
     rho_bar = det(U);
