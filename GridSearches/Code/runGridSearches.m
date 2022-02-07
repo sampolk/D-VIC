@@ -18,10 +18,13 @@ clear
 kappaTable = zeros(3,10);
 OATable = zeros(3,10);
 Clusterings = cell(3,10);
+hyperparameters = cell(3,10);
 
 datasets = {'SalinasACorrected','IndianPinesCorrected', 'syntheticHSI5149Stretched'};
 
 for i = 1:3
+
+    load(datasets{i})
 
     algs = cell(1,10);
     ending = strcat('Results', datasets{i});
@@ -50,6 +53,7 @@ for i = 1:3
         kappaTable(i,idces(j)) = mean(kappas(k));
         algs{idces(j)} = algsTemp{j};
         Clusterings{i,idces(j)} = Cs(:,k);
+        hyperparameters{i,idces(j)} = array2table([10, NNs(k)], 'VariableNames', {'Alpha','NN'});
 %         catch
 %         end
     end
@@ -65,6 +69,10 @@ for i = 1:3
         algs{idces(j)} = algsTemp{j};
         [~,l] = min(abs(OATable(i,idces(j))-OAs(k,:)));
         Clusterings{i,idces(j)} = Cs(:,k,l);
+
+        hyperparameters{i,idces(j)} = array2table(NNs(l), 'VariableNames', {'NN'});
+
+
 %         catch
 %         end
     end
@@ -80,6 +88,25 @@ for i = 1:3
         kappaTable(i,idces(j)) = kappas(l,k);
         algs{idces(j)} = algsTemp{j};
         Clusterings{i,idces(j)} = Cs(:,l,k);
+
+
+        if j == 2
+            Hyperparameters.SpatialParams.ImageSize = [M,N];
+            Hyperparameters.NEigs = 10;
+            Hyperparameters.NumDtNeighbors = 200;
+            Hyperparameters.Beta = 2;
+            Hyperparameters.Tau = 10^(-5);
+            Hyperparameters.K_Known = length(unique(Y))-1; % We subtract 1 since we discard gt labels
+            Hyperparameters.Tolerance = 1e-8;
+            Hyperparameters.DiffusionNN = NNs(l);
+            Hyperparameters.DensityNN = NNs(l); % must be ≤ 1000
+            Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(k), 'all');
+
+            hyperparameters{i,idces(j)} = Hyperparameters;
+        else
+            hyperparameters{i,idces(j)} = array2table([minPtVals(l), prctile(Dist_NN(Dist_NN>0), prctiles(k), 'all')], 'VariableNames', {'MinPts', 'Epsilon'});
+        end
+
 %         catch
 %         end
     end
@@ -89,7 +116,7 @@ for i = 1:3
     idces = [10]; 
     for j = 1:length(algsTemp)
 %         try
-        load(strcat(algsTemp{j}, ending, 'ManyAVMAX'))
+        load(strcat(algsTemp{j}, ending, 'ManyAVMAXFinalized'))
         [OATable(i,idces(j)),k] = max(mean(OAs,3), [],'all');
         [l,k] = ind2sub(size(mean(OAs,3)), k);
         kappaTable(i,idces(j)) = mean(kappas(l,k,:));
@@ -97,6 +124,32 @@ for i = 1:3
     
         [~,m] = min(abs(OATable(i,idces(j))-squeeze(OAs(l,k,:))));
         Clusterings{i,idces(j)} = Cs(:,l,k,m);
+
+        Hyperparameters.SpatialParams.ImageSize = [M,N];
+        Hyperparameters.NEigs = 10;
+        Hyperparameters.NumDtNeighbors = 200;
+        Hyperparameters.Beta = 2;
+        Hyperparameters.Tau = 10^(-5);
+        Hyperparameters.Tolerance = 1e-8;
+        if i==3
+            K = length(unique(Y))-1;
+        else
+            K = length(unique(Y));
+        end
+        Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
+
+        Hyperparameters.DiffusionNN = NNs(i);
+        Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
+        Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
+        if i==3
+            Hyperparameters.EndmemberParams.K = K; % compute hysime to get best estimate for number of endmembers
+        else
+            Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
+        end
+        Hyperparameters.EndmemberParams.Algorithm = 'ManyAVMAX';
+        Hyperparameters.EndmemberParams.NumReplicates = 100;
+
+        hyperparameters{i,idces(j)} = Hyperparameters;
 %         catch
 %         end
     end
@@ -105,7 +158,7 @@ end
 OATable = array2table(OATable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
 kappaTable = array2table(kappaTable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
 
-save('results', 'kappaTable', 'OATable', 'Clusterings', 'algs', 'datasets')
+save('results', 'kappaTable', 'OATable', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
 
 %% Visualize Clusterings and Ground Truth
 
@@ -184,21 +237,24 @@ for i = 1:3
     load(datasets{i})
 
     ending = strcat('Results', datasets{i});
-    load(strcat('DVIS', ending, 'ManyAVMAX'))
+    load(strcat('DVIS', ending, 'ManyAVMAXFinalized'))
+    prctiles = prctiles(end-19:end);
+    prctiles(end) = 99.5;
 
     mat = mean(OAs,3);
+    mat = mat(:,end-19:end);
 
     DistTemp = Dist_NN(Dist_NN>0);
     sigmas = zeros(10,1);
     for j = 1:10
-        sigmas(j) = prctile(DistTemp, prctiles(j), 'all');
+        sigmas(j) = prctile(DistTemp, prctiles(2*j), 'all');
     end
 
     set(groot,'defaultAxesTickLabelInterpreter','latex');  % Enforces latex x-tick labels
     h = figure;
 
     imagesc(mat)
-    xticks(1:10)
+    xticks(2:2:20)
     exponents = floor(log10(sigmas));
     val = sigmas()./(10.^exponents)    ;
     labels = cell(10,1);
@@ -218,7 +274,7 @@ for i = 1:3
 
     set(gca,'FontSize', 14, 'FontName', 'Times')
     title(['D-VIS Performance on ' datasetsFormal{i}], 'interpreter','latex', 'FontSize', 17) 
-    saveas(h, strcat(datasets{i}, 'Robustness'), 'epsc')
+    saveas(h, strcat(datasets{i}, 'Robustness'), 'jpeg')
 
     
     x = reshape(mat, numel(mat),1);
