@@ -10,13 +10,16 @@ NNs = 10:10:100;
 prcts{1} =  45:(100-45)/19:100;
 prcts{5} = 88:(100-88)/19:100;
 prcts{13} = 73:(100-73)/19:100;
+for k = 1:13
+    prcts{k} = 5:10:95;
+end
 
 numReplicates = 10;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  [5,13,1]
+for dataIdx =  [2,6,7,8,9]
     prctiles = prcts{dataIdx};
 
     % ===================== Load and Preprocess Data ======================
@@ -76,8 +79,9 @@ for dataIdx =  [5,13,1]
     end
 
 
-    [M,N,D] = size(HSI);
-
+    [M,N] = size(GT);
+    D = size(X,2);
+    
     if dataIdx >= 7
 
         X = reshape(HSI, M*N,D);

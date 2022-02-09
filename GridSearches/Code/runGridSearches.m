@@ -20,7 +20,7 @@ OATable = zeros(3,10);
 Clusterings = cell(3,10);
 hyperparameters = cell(3,10);
 
-datasets = {'SalinasACorrected','IndianPinesCorrected', 'syntheticHSI5149Stretched'};
+datasets = {'SalinasACorrected','IndianPinesCorrected', 'JasperRidge'};
 
 for i = 1:3
 
@@ -116,7 +116,11 @@ for i = 1:3
     idces = [10]; 
     for j = 1:length(algsTemp)
 %         try
-        load(strcat(algsTemp{j}, ending, 'ManyAVMAXFinalized'))
+        if i == 3
+            load(strcat(algsTemp{j}, ending, 'ManyAVMAX'))
+        else
+            load(strcat(algsTemp{j}, ending, 'RefinedManyAVMAX'))
+        end
         [OATable(i,idces(j)),k] = max(mean(OAs,3), [],'all');
         [l,k] = ind2sub(size(mean(OAs,3)), k);
         kappaTable(i,idces(j)) = mean(kappas(l,k,:));
@@ -155,17 +159,26 @@ for i = 1:3
     end
 end
 
-OATable = array2table(OATable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
-kappaTable = array2table(kappaTable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
+table  = zeros(10,8);
+table(:,1:2) = [ OATable(2,:)', kappaTable(2,:)', ];
+table(:,3:4) = [ OATable(1,:)', kappaTable(1,:)', ];
+table(:,5:6) = [ OATable(3,:)', kappaTable(3,:)', ];
+table(:,7:8) = [ mean(OATable)',mean(kappaTable)' ];
+table = round(table,3);
 
-save('results', 'kappaTable', 'OATable', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
+table = array2table(table, 'RowNames',algs, 'VariableNames',{'IndianPinesOA', 'IndianPinesKappa', 'SalinasAOA','SalinasAKappa', 'JasperRidgeOA','JasperRidgeKappa', 'AverageOA', 'AverageKappa'});
+% 
+% OATable = array2table(OATable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
+% kappaTable = array2table(kappaTable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
+
+save('results', 'table', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
 
 %% Visualize Clusterings and Ground Truth
 
 load('results.mat')
 
 algsFormal = {'$K$-Means', '$K$-Means+PCA', 'GMM+PCA', 'DBSCAN','H2NMF','SC','SymNMF','KNN-SSC','LUND','D-VIS'};
-datasetsFormal = {'Salinas A', 'Indian Pines', 'Synthetic Data'};
+datasetsFormal = {'Salinas A', 'Indian Pines', 'Jasper Ridge'};
 
 for i = 1:3
 
@@ -183,7 +196,7 @@ for i = 1:3
     [~,scores] = pca(X);
     imagesc(reshape(scores(:,1), M,N))
     a = colorbar;
-    a.Label.String = 'OA (%)';
+%     a.Label.String = 'OA (%)';
     xticks([])
     yticks([])
     axis equal tight
@@ -233,28 +246,36 @@ close all
 means = zeros(3,1);
 CIs = zeros(3,2);
 
-for i = 1:3
+for i = 3
     load(datasets{i})
 
     ending = strcat('Results', datasets{i});
-    load(strcat('DVIS', ending, 'ManyAVMAXFinalized'))
-    prctiles = prctiles(end-19:end);
-    prctiles(end) = 99.5;
+    load(strcat('DVIS', ending, 'ManyAVMAX'))
+%     prctiles = prctiles(end-19:end);
+%     prctiles(end) = 99.5;
 
     mat = mean(OAs,3);
-    mat = mat(:,end-19:end);
+%     mat = mat(:,end-19:end);
 
     DistTemp = Dist_NN(Dist_NN>0);
     sigmas = zeros(10,1);
     for j = 1:10
+        if i == 3
+        sigmas(j) = prctile(DistTemp, prctiles(j), 'all');
+        else
         sigmas(j) = prctile(DistTemp, prctiles(2*j), 'all');
+        end
     end
 
     set(groot,'defaultAxesTickLabelInterpreter','latex');  % Enforces latex x-tick labels
     h = figure;
 
     imagesc(mat)
+    if i <3
     xticks(2:2:20)
+    else
+        xticks(1:10)
+    end
     exponents = floor(log10(sigmas));
     val = sigmas()./(10.^exponents)    ;
     labels = cell(10,1);
@@ -265,8 +286,8 @@ for i = 1:3
     
     xlabel('$\sigma_0$', 'interpreter', 'latex')
     ylabel('$N$', 'interpreter', 'latex')
-    yticks([1,5,8,12, 15, 19])
-    yticklabels(NNs([1,5,8,12, 15, 19]))
+    yticks([2:2:10])
+    yticklabels(NNs([2:2:10]))
     axis tight
 
     a = colorbar;
