@@ -21,7 +21,7 @@ numReplicates = 10;
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  8
+for dataIdx =  7
     prctiles = prcts{dataIdx};
 
     % ===================== Load and Preprocess Data ======================
@@ -51,12 +51,14 @@ for dataIdx =  8
     end
     if dataIdx == 7
         load('PaviaU')
-        HSI = HSI(101:400,241:300,:);
-        GT = GT(101:400,241:300);
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(101:400,241:300,:));
+        GT = double(paviaU_gt(101:400,241:300));
     elseif dataIdx == 8
         load('PaviaU')
-        HSI = HSI(498:end,1:100,:);
-        GT = GT(498:end,1:100);        
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(498:end,1:100,:));
+        GT = double(paviaU_gt(498:end,1:100));        
     elseif dataIdx == 9
         load('Botswana.mat')
         load('Botswana_gt.mat')
@@ -75,7 +77,7 @@ for dataIdx =  8
     end
 
     [M,N] = size(GT);
-    D = size(X,2);
+    D = size(HSI,3);
     X = reshape(HSI,M*N,D);
     
     if dataIdx >= 6  

@@ -1,15 +1,15 @@
 %% RunGridSearches
 
-DVISGS
-LUNDGS
-KMeansGS
-KMeansPCAGS
-SCGS
-H2NMFGS
-DBSCANGS  
-SymNMFGS
-GMMPCAGS 
-KNNSSCGS
+% DVISGS
+% LUNDGS
+% KNNSSCGS
+% KMeansGS
+% KMeansPCAGS
+% SCGS
+% H2NMFGS
+% DBSCANGS  
+% SymNMFGS
+% GMMPCAGS 
 
 %% Aggregate into a table
 clear

@@ -1,16 +1,11 @@
 %% DBSCAN
 % Extracts performances for DBSCAN
 
-
-%% Grid Search Parameters
-
-
-% Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-prctiles = 1:1:99; 
-
+prts = 5:10:95;
+%% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  8
+for dataIdx =  7
 
     % ===================== Load and Preprocess Data ======================
     
@@ -39,12 +34,14 @@ for dataIdx =  8
     end
     if dataIdx == 7
         load('PaviaU')
-        HSI = HSI(101:400,241:300,:);
-        GT = GT(101:400,241:300);
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(101:400,241:300,:));
+        GT = double(paviaU_gt(101:400,241:300));
     elseif dataIdx == 8
         load('PaviaU')
-        HSI = HSI(498:end,1:100,:);
-        GT = GT(498:end,1:100);        
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(498:end,1:100,:));
+        GT = double(paviaU_gt(498:end,1:100));        
     elseif dataIdx == 9
         load('Botswana.mat')
         load('Botswana_gt.mat')
@@ -63,8 +60,8 @@ for dataIdx =  8
     end
 
     [M,N] = size(GT);
-    D = size(X,2);
-    X = reshape(HSI,M*N,D); 
+    D = size(HSI,3);
+    X = reshape(HSI,M*N,D);
     
     if dataIdx >= 6  
         [X, M,N, Idx_NN, Dist_NN] = knn_store(HSI, 900); % 
@@ -85,16 +82,24 @@ for dataIdx =  8
     GT = newGT;
     
 
-
+    clear Botswana Botswana_gt  pavia pavia_gt uniqueClass k 
+ 
     % Set Default parameters
     Hyperparameters.SpatialParams.ImageSize = [M,N];
     Hyperparameters.NEigs = 10;
     Hyperparameters.NumDtNeighbors = 200;
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
-    Hyperparameters.K_Known = length(unique(Y))-1 + (dataIdx==2); % We subtract 1 since we discard gt labels but not for Jasper Ridge
     Hyperparameters.Tolerance = 1e-8;
-    K = length(unique(Y))-1+ (dataIdx==2);
+    if dataIdx >= 12 && ~(dataIdx == 2)
+        K = length(unique(Y))-1;
+    else
+        K = length(unique(Y));
+    end
+    Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
+
+
+
 
     minPtVals =  floor([3,10:10:3*size(X,2)]);
 
