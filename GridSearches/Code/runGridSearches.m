@@ -1,7 +1,7 @@
 %% RunGridSearches
 
-LUNDGS
 DVISGS
+LUNDGS
 KMeansGS
 KMeansPCAGS
 SCGS

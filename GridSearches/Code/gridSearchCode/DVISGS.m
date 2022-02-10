@@ -7,19 +7,21 @@
 NNs = 10:10:100;
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-prcts{1} =  45:(100-45)/19:100;
-prcts{5} = 88:(100-88)/19:100;
-prcts{13} = 73:(100-73)/19:100;
+
 for k = 1:13
     prcts{k} = 5:10:95;
 end
+prcts{1} =  45:(100-45)/19:100;
+prcts{5} = 88:(100-88)/19:100;
+% prcts{5} = 5:(45-5)/19:45;
+prcts{13} = 73:(100-73)/19:100;
 
 numReplicates = 10;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  [2,6,7,8,9]
+for dataIdx =  8
     prctiles = prcts{dataIdx};
 
     % ===================== Load and Preprocess Data ======================
@@ -28,70 +30,9 @@ for dataIdx =  [2,6,7,8,9]
     if dataIdx <7
         load(datasets{dataIdx})
     end
-
-    if dataIdx == 6
-        
-        % Perfor knnsearch for new datasets
-        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
-
+    if dataIdx == 2
+        X = knn_store(reshape(X,M,N,size(X,2)), 900);
     end
-    if dataIdx == 7 || dataIdx == 8
-        load('PaviaU')
-        if dataIdx == 7
-            HSI = HSI(101:400,241:300,:);
-            GT = GT(101:400,241:300);
-        elseif dataIdx == 8
-            HSI = HSI(498:end,1:100,:);
-            GT = GT(498:end,1:100);        
-        end
-    elseif dataIdx == 9 || dataIdx == 10 || dataIdx == 11
-
-        if dataIdx == 9
-            load('Botswana.mat')
-            load('Botswana_gt.mat')
-            HSI = Botswana(285:507, 204:253,:);
-            GT = Botswana_gt(285:507, 204:253);
-        elseif dataIdx == 10
-            load('Pavia_gt')
-            load('Pavia.mat')
-            HSI = pavia(101:250,201:350,:);
-            GT = pavia_gt(101:250,201:350);
-        elseif dataIdx == 11
-            load('Pavia_gt')
-            load('Pavia.mat')
-            HSI = pavia(201:400, 430:530,:);
-            GT = pavia_gt(201:400, 430:530);
-        end
-        X = reshape(HSI, size(HSI, 1)*size(HSI, 2), size(HSI,3));
-        X = X./vecnorm(X,2,2);
-        HSI = reshape(X, size(HSI, 1),size(HSI, 2), size(HSI,3));
-    end
-
-
-    if dataIdx == 12 || dataIdx == 13
-        load(datasets{dataIdx})
-%         X = X./vecnorm(X,2,2);
-        HSI = reshape(X,M,N,D);
-        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
-
-        Dist_NN = Dist_NN(:,2:end);
-        Idx_NN = Idx_NN(:,2:end);
-    end
-
-
-    [M,N] = size(GT);
-    D = size(X,2);
-    
-    if dataIdx >= 7
-
-        X = reshape(HSI, M*N,D);
-        Y = reshape(GT,M*N,1);
-        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
-    
-        Dist_NN = Dist_NN(:,2:end);
-        Idx_NN = Idx_NN(:,2:end);
-    end
-
 
     % If Salinas A, we add gaussian noise and redo nearest neighbor searches. 
     if dataIdx == 5
@@ -102,6 +43,44 @@ for dataIdx =  [2,6,7,8,9]
         Dist_NN = Dist_NN(:,2:end);
         Idx_NN = Idx_NN(:,2:end);
     end 
+    if dataIdx == 6
+
+        % Perfor knnsearch for new datasets
+        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
+
+    end
+    if dataIdx == 7
+        load('PaviaU')
+        HSI = HSI(101:400,241:300,:);
+        GT = GT(101:400,241:300);
+    elseif dataIdx == 8
+        load('PaviaU')
+        HSI = HSI(498:end,1:100,:);
+        GT = GT(498:end,1:100);        
+    elseif dataIdx == 9
+        load('Botswana.mat')
+        load('Botswana_gt.mat')
+        HSI = Botswana(285:507, 204:253,:);
+        GT = Botswana_gt(285:507, 204:253);
+    elseif dataIdx == 10
+        load('Pavia_gt')
+        load('Pavia.mat')
+        HSI = pavia(101:250,201:350,:);
+        GT = pavia_gt(101:250,201:350);
+    elseif dataIdx == 11
+        load('Pavia_gt')
+        load('Pavia.mat')
+        HSI = pavia(201:400, 430:530,:);
+        GT = pavia_gt(201:400, 430:530);
+    end
+
+    [M,N] = size(GT);
+    D = size(X,2);
+    X = reshape(HSI,M*N,D);
+    
+    if dataIdx >= 6  
+        [X, M,N, Idx_NN, Dist_NN] = knn_store(HSI, 900); % 
+    end
 
 
 
@@ -111,11 +90,13 @@ for dataIdx =  [2,6,7,8,9]
     for k = 1:K
     newGT(GT==uniqueClass(k)) = k;
     end
+    if dataIdx == 2
+        newGT = newGT+1;
+    end
     Y = reshape(newGT,M*N,1);
     GT = newGT;
+    
 
-    Idx_NN = Idx_NN(:,1:901);
-    Dist_NN = Dist_NN(:,1:901);
     clear Botswana Botswana_gt  pavia pavia_gt uniqueClass k 
  
     % Set Default parameters
@@ -125,7 +106,7 @@ for dataIdx =  [2,6,7,8,9]
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12
+    if dataIdx >= 12 && ~(dataIdx == 2)
         K = length(unique(Y))-1;
     else
         K = length(unique(Y));

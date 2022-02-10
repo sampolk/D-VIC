@@ -1,4 +1,4 @@
-function [X,M,N,varargout] = knn_store(HSI, NN_max,save_on, noise_on)
+function [X,M,N, varargout] = knn_store(HSI, NN_max,dataname, noise_on)
 %{
 Objectives:     1. Standardize the points in a hyperspectral image (HSI).
                 2. Compute nearest neighbor searches for each point (Optional).        
@@ -35,7 +35,7 @@ If noise_on is not included, no noise is added to the HSI.
 %}
 
 if nargin <4
-    noise_on = 1;
+    noise_on = 0;
 end
 
 [M,N,~] = size(HSI); %dimensions of HSI
@@ -46,6 +46,7 @@ X=reshape(HSI,size(HSI,1)*size(HSI,2),size(HSI,3));
 if noise_on
     X = X + 10^(-6).*randn(size(X));
 end
+X(:,sum(X)==0) = []; % Delete zero bands
 X=X./repmat(sqrt(sum(X.*X,1)),size(X,1),1); % Normalize HSI
 
 if nargin>1
@@ -59,14 +60,12 @@ if nargin>1
         Idx_NN(i,:) = idx(2:end);
         disp(strcat('Nearest neighbors, ', num2str((1-i/n)*100, 3), '% complete.'))
     end
-    varargout{1} = Dist_NN;
-    varargout{2} = Idx_NN;
+    varargout{2} = Dist_NN;
+    varargout{1} = Idx_NN;
     
 end
 
 % save nearest neighbor searches and normalized X.
-if nargin == 3
-    if save_on == 1
-        save('normalized_data_NNs.mat', 'X', 'M', 'N', 'Dist_NN', 'Idx_NN')
-    end
+if nargin >= 3
+    save(dataname, 'X', 'M', 'N', 'Dist_NN', 'Idx_NN')
 end

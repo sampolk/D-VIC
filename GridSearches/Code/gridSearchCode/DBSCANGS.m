@@ -8,17 +8,19 @@
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 prctiles = 1:1:99; 
 
-datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'syntheticHSI5149Stretched'};
+datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-
-%% Grid searches
-
-for dataIdx = 6 
+for dataIdx =  8
 
     % ===================== Load and Preprocess Data ======================
     
     % Load data
-    load(datasets{dataIdx})
+    if dataIdx <7
+        load(datasets{dataIdx})
+    end
+    if dataIdx == 2
+        X = knn_store(reshape(X,M,N,size(X,2)), 900);
+    end
 
     % If Salinas A, we add gaussian noise and redo nearest neighbor searches. 
     if dataIdx == 5
@@ -28,17 +30,61 @@ for dataIdx = 6
     
         Dist_NN = Dist_NN(:,2:end);
         Idx_NN = Idx_NN(:,2:end);
-    end
-
+    end 
     if dataIdx == 6
-        load(datasets{dataIdx})
-        X = X./vecnorm(X,2,2);
-        HSI = reshape(X,M,N,D);
+
+        % Perfor knnsearch for new datasets
         [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
 
-        Dist_NN = Dist_NN(:,2:end);
-        Idx_NN = Idx_NN(:,2:end);
     end
+    if dataIdx == 7
+        load('PaviaU')
+        HSI = HSI(101:400,241:300,:);
+        GT = GT(101:400,241:300);
+    elseif dataIdx == 8
+        load('PaviaU')
+        HSI = HSI(498:end,1:100,:);
+        GT = GT(498:end,1:100);        
+    elseif dataIdx == 9
+        load('Botswana.mat')
+        load('Botswana_gt.mat')
+        HSI = Botswana(285:507, 204:253,:);
+        GT = Botswana_gt(285:507, 204:253);
+    elseif dataIdx == 10
+        load('Pavia_gt')
+        load('Pavia.mat')
+        HSI = pavia(101:250,201:350,:);
+        GT = pavia_gt(101:250,201:350);
+    elseif dataIdx == 11
+        load('Pavia_gt')
+        load('Pavia.mat')
+        HSI = pavia(201:400, 430:530,:);
+        GT = pavia_gt(201:400, 430:530);
+    end
+
+    [M,N] = size(GT);
+    D = size(X,2);
+    X = reshape(HSI,M*N,D); 
+    
+    if dataIdx >= 6  
+        [X, M,N, Idx_NN, Dist_NN] = knn_store(HSI, 900); % 
+    end
+
+
+
+    newGT = zeros(size(GT));
+    uniqueClass = unique(GT);
+    K = length(uniqueClass);
+    for k = 1:K
+    newGT(GT==uniqueClass(k)) = k;
+    end
+    if dataIdx == 2
+        newGT = newGT+1;
+    end
+    Y = reshape(newGT,M*N,1);
+    GT = newGT;
+    
+
 
     % Set Default parameters
     Hyperparameters.SpatialParams.ImageSize = [M,N];
@@ -46,9 +92,9 @@ for dataIdx = 6
     Hyperparameters.NumDtNeighbors = 200;
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
-    Hyperparameters.K_Known = length(unique(Y))-1; % We subtract 1 since we discard gt labels
+    Hyperparameters.K_Known = length(unique(Y))-1 + (dataIdx==2); % We subtract 1 since we discard gt labels but not for Jasper Ridge
     Hyperparameters.Tolerance = 1e-8;
-    K = length(unique(Y))-1;
+    K = length(unique(Y))-1+ (dataIdx==2);
 
     minPtVals =  floor([3,10:10:3*size(X,2)]);
 
