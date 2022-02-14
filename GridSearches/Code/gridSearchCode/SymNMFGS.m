@@ -13,7 +13,7 @@ numReplicates = 10;
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  7
+for dataIdx =  [1,5,7]
 
     % ===================== Load and Preprocess Data ======================
     
@@ -99,11 +99,6 @@ for dataIdx =  7
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12 && ~(dataIdx == 2)
-        K = length(unique(Y))-1;
-    else
-        K = length(unique(Y));
-    end
     Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
 
     
@@ -114,6 +109,7 @@ for dataIdx =  7
     kappas  = NaN*zeros(length(NNs), 1);
     Cs      = zeros(M*N,length(NNs),numReplicates);
 
+    bestPerf = 0;
     % Run Grid Searches
     for i = 1:length(NNs)
         for j = 1:numReplicates
@@ -125,6 +121,13 @@ for dataIdx =  7
             disp([ i/length(NNs), j/numReplicates, dataIdx/5])
 
         end
+        
+        currentPerf = mean(OAs(i,:));
+        if currentPerf>=bestPerf
+            NN = NNs(i);
+            save(strcat('SymNMFHP', datasets{dataIdx}), 'NN')
+        end
+
     end
 
     save(strcat('SymNMFResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs', 'numReplicates')

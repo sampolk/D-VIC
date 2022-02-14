@@ -13,7 +13,7 @@ alpha = 10;
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  8
+for dataIdx =  [1,5,7]
 
     % ===================== Load and Preprocess Data ======================
     
@@ -42,12 +42,14 @@ for dataIdx =  8
     end
     if dataIdx == 7
         load('PaviaU')
-        HSI = HSI(101:400,241:300,:);
-        GT = GT(101:400,241:300);
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(101:400,241:300,:));
+        GT = double(paviaU_gt(101:400,241:300));
     elseif dataIdx == 8
         load('PaviaU')
-        HSI = HSI(498:end,1:100,:);
-        GT = GT(498:end,1:100);        
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(498:end,1:100,:));
+        GT = double(paviaU_gt(498:end,1:100));        
     elseif dataIdx == 9
         load('Botswana.mat')
         load('Botswana_gt.mat')
@@ -73,8 +75,6 @@ for dataIdx =  8
         [X, M,N, Idx_NN, Dist_NN] = knn_store(HSI, 900); % 
     end
 
-
-
     newGT = zeros(size(GT));
     uniqueClass = unique(GT);
     K = length(uniqueClass);
@@ -86,8 +86,6 @@ for dataIdx =  8
     end
     Y = reshape(newGT,M*N,1);
     GT = newGT;
-    
-
 
     % ============================== knnssc ==============================
  
@@ -96,16 +94,23 @@ for dataIdx =  8
     kappas  = NaN*zeros(length(NNs), 1);
     Cs      = zeros(M*N,length(NNs));
 
+    bestPerf = 0;
     % Run Grid Searches
     for i = 1:length(NNs)
  
         W = knn_SSC( X', alpha, NNs(i), Idx_NN);
-        [~,C] = spectral_clustering(abs(W)+abs(W'),Hyperparameters.K_Known,Y);
+        [~,C] = spectral_clustering(abs(W)+abs(W'),K,Y);
         [~,~, OAs(i), ~, kappas(i)]= measure_performance(C, Y);
         Cs(:,i) = C;
 
+        if OAs(i)>=bestPerf
+            bestPerf = OAs(i);
+            NN = NNs(i);
+            save(strcat('KNNSSCHP', datasets{dataIdx}), 'NN')
+        end
+
         disp(['KNNSSC: '])
-        disp([i/length(NNs), dataIdx/5])
+        disp([i/length(NNs), dataIdx/5, bestPerf])
     end
 
     save(strcat('KNNSSCResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs')

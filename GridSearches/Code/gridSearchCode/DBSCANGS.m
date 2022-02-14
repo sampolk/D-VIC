@@ -1,11 +1,12 @@
 %% DBSCAN
 % Extracts performances for DBSCAN
 
-prts = 5:10:95;
+prctiles = 5:10:95;
+
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  7
+for dataIdx =  [5,7]
 
     % ===================== Load and Preprocess Data ======================
     
@@ -90,12 +91,7 @@ for dataIdx =  7
     Hyperparameters.NumDtNeighbors = 200;
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
-    Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12 && ~(dataIdx == 2)
-        K = length(unique(Y))-1;
-    else
-        K = length(unique(Y));
-    end
+    Hyperparameters.Tolerance = 1e-8; 
     Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
 
 
@@ -112,6 +108,7 @@ for dataIdx =  7
     kappas  = NaN*zeros(length(minPtVals),length(prctiles));
     Cs      = zeros(M*N,length(minPtVals),length(prctiles));
 
+    bestPerf = 0;
     % Run Grid Search 
     for i = 1:length(minPtVals)
         for j = 1:length(prctiles)
@@ -121,6 +118,15 @@ for dataIdx =  7
 
                 [~,~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
                 Cs(:,i,j) = C;
+
+                currentPerf = OAs(i,j);
+                if currentPerf >= bestPerf
+                    bestPerf = currentPerf;
+                    epsilon = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
+                    minPts = minPtVals(i);
+                    save(strcat('DBSCANHP', datasets{dataIdx}), 'epsilon' ,'minPts')
+                end
+
             end
 
             disp(['DBSCAN:'])

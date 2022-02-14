@@ -4,9 +4,10 @@
 %% Grid Search Parameters
    
 % Set number of nearest neighbors to use in graph and KDE construction.
-NNs = 10:10:100;
+NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
+<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m
 
 for k = 1:13
     prcts{k} = 5:10:95;
@@ -14,19 +15,25 @@ end
 prcts{1} =  45:(100-45)/19:100;
 prcts{5} = 88:(100-88)/19:100;
 % prcts{5} = 5:(45-5)/19:45;
-prcts{7} = 5:(65-5)/19:65;
 prcts{13} = 73:(100-73)/19:100;
+=======
+prctiles = 5:10:95; 
+>>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
 
 numReplicates = 10;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  5
-%     prctiles = prcts{dataIdx};
+<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m
+for dataIdx =  7
+    prctiles = prcts{dataIdx};
+=======
+for dataIdx =  [5]
+>>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
 
     % ===================== Load and Preprocess Data ======================
-     
+    
     % Load data
     if dataIdx <7
         load(datasets{dataIdx})
@@ -52,12 +59,14 @@ for dataIdx =  5
     end
     if dataIdx == 7
         load('PaviaU')
-        HSI = HSI(101:400,241:300,:);
-        GT = GT(101:400,241:300);
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(101:400,241:300,:));
+        GT = double(paviaU_gt(101:400,241:300));
     elseif dataIdx == 8
         load('PaviaU')
-        HSI = HSI(498:end,1:100,:);
-        GT = GT(498:end,1:100);        
+        load('PaviaU_gt.mat')
+        HSI = double(paviaU(498:end,1:100,:));
+        GT = double(paviaU_gt(498:end,1:100));        
     elseif dataIdx == 9
         load('Botswana.mat')
         load('Botswana_gt.mat')
@@ -76,7 +85,7 @@ for dataIdx =  5
     end
 
     [M,N] = size(GT);
-    D = size(X,2);
+    D = size(HSI,3);
     X = reshape(HSI,M*N,D);
     
     if dataIdx >= 6  
@@ -123,10 +132,10 @@ for dataIdx =  5
     kappas  = NaN*zeros(length(NNs), length(prctiles), numReplicates);
     Cs      = zeros(M*N,length(NNs), length(prctiles), numReplicates);
 
-    bestPerf = 0;
+    currentPerf = 0;
     % Run Grid Searches
-    for i = [1,3]
-        for j = [6:13, 15:19]
+    for i = 1:length(NNs)
+        for j = 1:length(prctiles)
             for k = 1:numReplicates
 
                 Hyperparameters.DiffusionNN = NNs(i);
@@ -159,22 +168,17 @@ for dataIdx =  5
                     C =  Clusterings.Labels(:,tIdx);
                     Cs(:,i,j,k) = C;
                 end
-
     
                 disp(['DVIS: '])
-                disp([i/length(NNs), j/length(prctiles), k/numReplicates, bestPerf])
+                disp([i/length(NNs), j/length(prctiles), k/numReplicates, currentPerf])
 
             end
-            currentPerf = mean(squeeze(OAs(i,j,:)));
-            if currentPerf >= bestPerf
-                bestPerf = currentPerf;
-                save(strcat('DVISHP', datasets{dataIdx}), 'Hyperparameters')
-            end
+            currentPerf = max(nanmean(OAs,3),[],'all');
         end 
         [maxOA, k] = max(nanmean(OAs,3),[],'all');
         [l,j] = ind2sub(size(mean(OAs,3)), k);
         stdOA = nanstd(squeeze(OAs(l,j,:)));
-        save(strcat('DVISResults', datasets{dataIdx}, '1ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
+        save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
 
     end
 

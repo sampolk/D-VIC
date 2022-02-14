@@ -15,8 +15,8 @@ numReplicates = 10;
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  7
-    prctiles = prcts{dataIdx};
+for dataIdx =  [1,5,7]
+%     prctiles = prcts{dataIdx};
 
     % ===================== Load and Preprocess Data ======================
     
@@ -102,11 +102,6 @@ for dataIdx =  7
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12 && ~(dataIdx == 2)
-        K = length(unique(Y))-1;
-    else
-        K = length(unique(Y));
-    end
     Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
 
 
@@ -136,8 +131,9 @@ for dataIdx =  7
                 [~,~, OAs(i,j), ~, kappas(i,j), tIdx]= measure_performance(Clusterings, Y);
                 C =  Clusterings.Labels(:,tIdx);
                 Cs(:,i,j) = C;
-                if OAs(i,j)>maxOA
+                if OAs(i,j)>=maxOA
                     maxOA = OAs(i,j);
+                    save(strcat('LUNDHP', datasets{dataIdx}), 'Hyperparameters')
                 end
             end
     

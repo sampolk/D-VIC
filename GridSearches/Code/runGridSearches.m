@@ -1,15 +1,15 @@
 %% RunGridSearches
 
-% DVISGS
-% LUNDGS
-% KNNSSCGS
 % KMeansGS
 % KMeansPCAGS
-% SCGS
-% H2NMFGS
-% DBSCANGS  
-% SymNMFGS
 % GMMPCAGS 
+% H2NMFGS
+% SCGS
+% SymNMFGS 
+% DBSCANGS   
+LUNDGS % 
+DVISGS % 
+KNNSSCGS % 
 
 %% Aggregate into a table
 clear
@@ -20,7 +20,7 @@ OATable = zeros(3,10);
 Clusterings = cell(3,10);
 hyperparameters = cell(3,10);
 
-datasets = {'SalinasACorrected','IndianPinesCorrected', 'JasperRidge'};
+datasets = {'SalinasACorrected','IndianPinesCorrected', 'PaviaSubset1'};
 
 for i = 1:3
 
@@ -166,7 +166,7 @@ table(:,5:6) = [ OATable(3,:)', kappaTable(3,:)', ];
 table(:,7:8) = [ mean(OATable)',mean(kappaTable)' ];
 table = round(table,3);
 
-table = array2table(table, 'RowNames',algs, 'VariableNames',{'IndianPinesOA', 'IndianPinesKappa', 'SalinasAOA','SalinasAKappa', 'JasperRidgeOA','JasperRidgeKappa', 'AverageOA', 'AverageKappa'});
+table = array2table(table, 'RowNames',algs, 'VariableNames',{'IndianPinesOA', 'IndianPinesKappa', 'SalinasAOA','SalinasAKappa', 'PaviaUOA','PaviaUKappa', 'AverageOA', 'AverageKappa'});
 % 
 % OATable = array2table(OATable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
 % kappaTable = array2table(kappaTable, 'VariableNames',algs, 'RowNames',{'SalinasA', 'IndianPines','Synthetic'});
@@ -178,7 +178,7 @@ save('results', 'table', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
 load('results.mat')
 
 algsFormal = {'$K$-Means', '$K$-Means+PCA', 'GMM+PCA', 'DBSCAN','H2NMF','SC','SymNMF','KNN-SSC','LUND','D-VIS'};
-datasetsFormal = {'Salinas A', 'Indian Pines', 'Jasper Ridge'};
+datasetsFormal = {'Salinas A', 'Indian Pines', 'Pavia U. Subset'};
 
 for i = 1:3
 
@@ -208,21 +208,14 @@ for i = 1:3
     for j = 1:10
 
         U = reshape(alignClusterings(Y,Clusterings{i,j}), M,N);
-        if i <=2 
-            if ~(j==4)
-                U(GT == 1) = 0;
-            else
-                U(U==0) = -1;
-                U(GT == 1) = 0;
-            end
+     
+        if ~(j==4)
+            U(GT == 1) = 0;
         else
-            if ~(j==4)
-                U(GT == 0) = 0;
-            else
-                U(U==0) = -1;
-                U(GT == 1) = 0;
-            end
-        end 
+            U(U==0) = -1;
+            U(GT == 1) = 0;
+        end
+        
 
         h = figure;
         imagesc(U)
