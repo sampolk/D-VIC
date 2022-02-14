@@ -4,41 +4,20 @@
 %% Grid Search Parameters
    
 % Set number of nearest neighbors to use in graph and KDE construction.
-NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
+NNs = 10:10:100;
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m~HEAD
-<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m
-
-for k = 1:13
-    prcts{k} = 5:10:95;
-end
 prcts{1} =  45:(100-45)/19:100;
 prcts{5} = 88:(100-88)/19:100;
-% prcts{5} = 5:(45-5)/19:45;
 prcts{13} = 73:(100-73)/19:100;
-=======
-prctiles = 5:10:95; 
->>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
-=======
-prctiles = 5:10:95; 
->>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
 
-numReplicates = 10;
+numReplicates = 1;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m~HEAD
-<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m
-for dataIdx =  7
+for dataIdx =  5
     prctiles = prcts{dataIdx};
-=======
-for dataIdx =  [5]
->>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
-=======
-for dataIdx =  [5]
->>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
 
     % ===================== Load and Preprocess Data ======================
     
@@ -46,9 +25,69 @@ for dataIdx =  [5]
     if dataIdx <7
         load(datasets{dataIdx})
     end
-    if dataIdx == 2
-        X = knn_store(reshape(X,M,N,size(X,2)), 900);
+
+    if dataIdx == 6
+        
+        % Perfor knnsearch for new datasets
+        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
+
     end
+    if dataIdx == 7 || dataIdx == 8
+        load('PaviaU')
+        if dataIdx == 7
+            HSI = HSI(101:400,241:300,:);
+            GT = GT(101:400,241:300);
+        elseif dataIdx == 8
+            HSI = HSI(498:end,1:100,:);
+            GT = GT(498:end,1:100);        
+        end
+    elseif dataIdx == 9 || dataIdx == 10 || dataIdx == 11
+
+        if dataIdx == 9
+            load('Botswana.mat')
+            load('Botswana_gt.mat')
+            HSI = Botswana(285:507, 204:253,:);
+            GT = Botswana_gt(285:507, 204:253);
+        elseif dataIdx == 10
+            load('Pavia_gt')
+            load('Pavia.mat')
+            HSI = pavia(101:250,201:350,:);
+            GT = pavia_gt(101:250,201:350);
+        elseif dataIdx == 11
+            load('Pavia_gt')
+            load('Pavia.mat')
+            HSI = pavia(201:400, 430:530,:);
+            GT = pavia_gt(201:400, 430:530);
+        end
+        X = reshape(HSI, size(HSI, 1)*size(HSI, 2), size(HSI,3));
+        X = X./vecnorm(X,2,2);
+        HSI = reshape(X, size(HSI, 1),size(HSI, 2), size(HSI,3));
+    end
+
+
+    if dataIdx == 12 || dataIdx == 13
+        load(datasets{dataIdx})
+%         X = X./vecnorm(X,2,2);
+        HSI = reshape(X,M,N,D);
+        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
+
+        Dist_NN = Dist_NN(:,2:end);
+        Idx_NN = Idx_NN(:,2:end);
+    end
+
+
+    [M,N,D] = size(HSI);
+
+    if dataIdx >= 7
+
+        X = reshape(HSI, M*N,D);
+        Y = reshape(GT,M*N,1);
+        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
+    
+        Dist_NN = Dist_NN(:,2:end);
+        Idx_NN = Idx_NN(:,2:end);
+    end
+
 
     % If Salinas A, we add gaussian noise and redo nearest neighbor searches. 
     if dataIdx == 5
@@ -59,46 +98,6 @@ for dataIdx =  [5]
         Dist_NN = Dist_NN(:,2:end);
         Idx_NN = Idx_NN(:,2:end);
     end 
-    if dataIdx == 6
-
-        % Perfor knnsearch for new datasets
-        [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
-
-    end
-    if dataIdx == 7
-        load('PaviaU')
-        load('PaviaU_gt.mat')
-        HSI = double(paviaU(101:400,241:300,:));
-        GT = double(paviaU_gt(101:400,241:300));
-    elseif dataIdx == 8
-        load('PaviaU')
-        load('PaviaU_gt.mat')
-        HSI = double(paviaU(498:end,1:100,:));
-        GT = double(paviaU_gt(498:end,1:100));        
-    elseif dataIdx == 9
-        load('Botswana.mat')
-        load('Botswana_gt.mat')
-        HSI = Botswana(285:507, 204:253,:);
-        GT = Botswana_gt(285:507, 204:253);
-    elseif dataIdx == 10
-        load('Pavia_gt')
-        load('Pavia.mat')
-        HSI = pavia(101:250,201:350,:);
-        GT = pavia_gt(101:250,201:350);
-    elseif dataIdx == 11
-        load('Pavia_gt')
-        load('Pavia.mat')
-        HSI = pavia(201:400, 430:530,:);
-        GT = pavia_gt(201:400, 430:530);
-    end
-
-    [M,N] = size(GT);
-    D = size(HSI,3);
-    X = reshape(HSI,M*N,D);
-    
-    if dataIdx >= 6  
-        [X, M,N, Idx_NN, Dist_NN] = knn_store(HSI, 900); % 
-    end
 
 
 
@@ -108,13 +107,11 @@ for dataIdx =  [5]
     for k = 1:K
     newGT(GT==uniqueClass(k)) = k;
     end
-    if dataIdx == 2
-        newGT = newGT+1;
-    end
     Y = reshape(newGT,M*N,1);
     GT = newGT;
-    
 
+    Idx_NN = Idx_NN(:,1:901);
+    Dist_NN = Dist_NN(:,1:901);
     clear Botswana Botswana_gt  pavia pavia_gt uniqueClass k 
  
     % Set Default parameters
@@ -124,7 +121,7 @@ for dataIdx =  [5]
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12 && ~(dataIdx == 2)
+    if dataIdx >= 12
         K = length(unique(Y))-1;
     else
         K = length(unique(Y));
@@ -142,8 +139,8 @@ for dataIdx =  [5]
 
     currentPerf = 0;
     % Run Grid Searches
-    for i = 1:length(NNs)
-        for j = 1:length(prctiles)
+    for i = 1
+        for j = 10
             for k = 1:numReplicates
 
                 Hyperparameters.DiffusionNN = NNs(i);
@@ -186,7 +183,7 @@ for dataIdx =  [5]
         [maxOA, k] = max(nanmean(OAs,3),[],'all');
         [l,j] = ind2sub(size(mean(OAs,3)), k);
         stdOA = nanstd(squeeze(OAs(l,j,:)));
-        save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
+        save(strcat('DVISResults', datasets{dataIdx}, '1ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
 
     end
 

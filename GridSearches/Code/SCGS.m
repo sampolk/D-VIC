@@ -10,19 +10,14 @@ NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 numReplicates = 10;
 
 %% Grid searches
-datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
+datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  [1,5,7]
+for dataIdx = 6 
 
     % ===================== Load and Preprocess Data ======================
     
     % Load data
-    if dataIdx <7
-        load(datasets{dataIdx})
-    end
-    if dataIdx == 2
-        X = knn_store(reshape(X,M,N,size(X,2)), 900);
-    end
+    load(datasets{dataIdx})
 
     % If Salinas A, we add gaussian noise and redo nearest neighbor searches. 
     if dataIdx == 5
@@ -32,74 +27,26 @@ for dataIdx =  [1,5,7]
     
         Dist_NN = Dist_NN(:,2:end);
         Idx_NN = Idx_NN(:,2:end);
-    end 
+    end
     if dataIdx == 6
-
-        % Perfor knnsearch for new datasets
+        load(datasets{dataIdx})
+        X = X./vecnorm(X,2,2);
+        HSI = reshape(X,M,N,D);
         [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
 
-    end
-    if dataIdx == 7
-        load('PaviaU')
-        load('PaviaU_gt.mat')
-        HSI = double(paviaU(101:400,241:300,:));
-        GT = double(paviaU_gt(101:400,241:300));
-    elseif dataIdx == 8
-        load('PaviaU')
-        load('PaviaU_gt.mat')
-        HSI = double(paviaU(498:end,1:100,:));
-        GT = double(paviaU_gt(498:end,1:100));        
-    elseif dataIdx == 9
-        load('Botswana.mat')
-        load('Botswana_gt.mat')
-        HSI = Botswana(285:507, 204:253,:);
-        GT = Botswana_gt(285:507, 204:253);
-    elseif dataIdx == 10
-        load('Pavia_gt')
-        load('Pavia.mat')
-        HSI = pavia(101:250,201:350,:);
-        GT = pavia_gt(101:250,201:350);
-    elseif dataIdx == 11
-        load('Pavia_gt')
-        load('Pavia.mat')
-        HSI = pavia(201:400, 430:530,:);
-        GT = pavia_gt(201:400, 430:530);
+        Dist_NN = Dist_NN(:,2:end);
+        Idx_NN = Idx_NN(:,2:end);
     end
 
-    [M,N] = size(GT);
-    D = size(HSI,3);
-    X = reshape(HSI,M*N,D);
-    
-    if dataIdx >= 6  
-        [X, M,N, Idx_NN, Dist_NN] = knn_store(HSI, 900); % 
-    end
-
-
-
-    newGT = zeros(size(GT));
-    uniqueClass = unique(GT);
-    K = length(uniqueClass);
-    for k = 1:K
-    newGT(GT==uniqueClass(k)) = k;
-    end
-    if dataIdx == 2
-        newGT = newGT+1;
-    end
-    Y = reshape(newGT,M*N,1);
-    GT = newGT;
-    
-
-    clear Botswana Botswana_gt  pavia pavia_gt uniqueClass k 
- 
     % Set Default parameters
     Hyperparameters.SpatialParams.ImageSize = [M,N];
     Hyperparameters.NEigs = 10;
     Hyperparameters.NumDtNeighbors = 200;
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
+    Hyperparameters.K_Known = length(unique(Y))-1; % We subtract 1 since we discard gt labels
     Hyperparameters.Tolerance = 1e-8;
-    Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
-
+    K = length(unique(Y))-1;
 
     % ============================== SC ==============================
 
@@ -108,7 +55,6 @@ for dataIdx =  [1,5,7]
     kappas  = NaN*zeros(length(NNs), numReplicates);
     Cs      = zeros(M*N,length(NNs), numReplicates);
 
-    bestPerf = 0;
     % Run Grid Searches
     for i = 1:length(NNs)
 
@@ -121,18 +67,10 @@ for dataIdx =  [1,5,7]
                 C = SpectralClustering(G,K);
                 [~,~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
                 Cs(:,i,j) = C;
-                
+        
                 disp('SC')
                 disp([i/length(NNs), j/numReplicates, dataIdx/5])
             end
-
-            currentPerf = mean(OAs(i,:), 2);
-            if currentPerf>=bestPerf
-                bestPerf=currentPerf;
-                NN = NNs(i);
-                save(strcat('SCHP', datasets{dataIdx}), 'NN')
-            end
-
         end
     end
 
