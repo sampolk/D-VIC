@@ -7,6 +7,7 @@
 NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
+<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m~HEAD
 <<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m
 
 for k = 1:13
@@ -19,15 +20,22 @@ prcts{13} = 73:(100-73)/19:100;
 =======
 prctiles = 5:10:95; 
 >>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
+=======
+prctiles = 5:10:95; 
+>>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
 
 numReplicates = 10;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
+<<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m~HEAD
 <<<<<<< HEAD:GridSearches/Code/gridSearchCode/DVISGS.m
 for dataIdx =  7
     prctiles = prcts{dataIdx};
+=======
+for dataIdx =  [5]
+>>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
 =======
 for dataIdx =  [5]
 >>>>>>> parent of a7536f9 (Edited the grid search parameters):GridSearches/Code/DVISGS.m
