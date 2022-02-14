@@ -4,10 +4,9 @@
 %% Grid Search Parameters
    
 % Set number of nearest neighbors to use in graph and KDE construction.
-NNs = 10:10:100;
+NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-
 for k = 1:13
     prcts{k} = 5:10:95;
 end
@@ -22,8 +21,8 @@ numReplicates = 10;
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  5
-%     prctiles = prcts{dataIdx};
+for dataIdx =  [5]
+    prctiles = prcts{dataIdx};
 
     % ===================== Load and Preprocess Data ======================
      
@@ -174,7 +173,7 @@ for dataIdx =  5
         [maxOA, k] = max(nanmean(OAs,3),[],'all');
         [l,j] = ind2sub(size(mean(OAs,3)), k);
         stdOA = nanstd(squeeze(OAs(l,j,:)));
-        save(strcat('DVISResults', datasets{dataIdx}, '1ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
+        save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
 
     end
 
