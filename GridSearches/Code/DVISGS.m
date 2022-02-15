@@ -10,13 +10,14 @@ NNs = 10:10:100;
 prcts{1} =  45:(100-45)/19:100;
 prcts{5} = 88:(100-88)/19:100;
 prcts{13} = 73:(100-73)/19:100;
+prcts{7} = 5:(55-5)/19:55;
 
 numReplicates = 1;
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  5
+for dataIdx =  7
     prctiles = prcts{dataIdx};
 
     % ===================== Load and Preprocess Data ======================
@@ -33,10 +34,11 @@ for dataIdx =  5
 
     end
     if dataIdx == 7 || dataIdx == 8
-        load('PaviaU')
         if dataIdx == 7
-            HSI = HSI(101:400,241:300,:);
-            GT = GT(101:400,241:300);
+            load('Pavia.mat')
+            load('Pavia_gt.mat')
+            HSI = pavia(101:400,241:300,:);
+            GT = pavia_gt(101:400,241:300);
         elseif dataIdx == 8
             HSI = HSI(498:end,1:100,:);
             GT = GT(498:end,1:100);        
@@ -139,7 +141,7 @@ for dataIdx =  5
 
     currentPerf = 0;
     % Run Grid Searches
-    for i = 1
+    for i = 1:length(NNs)
         for j = 10
             for k = 1:numReplicates
 

@@ -2,7 +2,7 @@
 
 load('results')
 
-datasets = {'IndianPinesCorrected', 'SalinasACorrected', 'syntheticHSI5149Stretched'};
+datasets = {'IndianPinesCorrected', 'SalinasACorrected', 'paviaU'};
 
 OATable = zeros(3,10);
 kappaTable = zeros(3,10);
