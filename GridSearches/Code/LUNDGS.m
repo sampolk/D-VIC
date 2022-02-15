@@ -12,10 +12,9 @@ prctiles = 5:10:95;
 
 numReplicates = 10;
 
-%% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  13
+for dataIdx =  7
 
     % ===================== Load and Preprocess Data ======================
     
@@ -30,11 +29,12 @@ for dataIdx =  13
         [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
 
     end
-    if dataIdx == 7 || dataIdx == 8 
-        load('PaviaU')
+    if dataIdx == 7 || dataIdx == 8
         if dataIdx == 7
-            HSI = HSI(101:400,241:300,:);
-            GT = GT(101:400,241:300);
+            load('Pavia.mat')
+            load('Pavia_gt.mat')
+            HSI = pavia(101:400,241:300,:);
+            GT = pavia_gt(101:400,241:300);
         elseif dataIdx == 8
             HSI = HSI(498:end,1:100,:);
             GT = GT(498:end,1:100);        
@@ -62,15 +62,17 @@ for dataIdx =  13
         HSI = reshape(X, size(HSI, 1),size(HSI, 2), size(HSI,3));
     end
 
+
     if dataIdx == 12 || dataIdx == 13
         load(datasets{dataIdx})
-        X = X./vecnorm(X,2,2);
+%         X = X./vecnorm(X,2,2);
         HSI = reshape(X,M,N,D);
         [Idx_NN, Dist_NN] = knnsearch(X, X, 'K', 1000);
 
         Dist_NN = Dist_NN(:,2:end);
         Idx_NN = Idx_NN(:,2:end);
     end
+
 
     [M,N,D] = size(HSI);
 
@@ -95,6 +97,8 @@ for dataIdx =  13
         Idx_NN = Idx_NN(:,2:end);
     end 
 
+
+
     newGT = zeros(size(GT));
     uniqueClass = unique(GT);
     K = length(uniqueClass);
@@ -114,9 +118,14 @@ for dataIdx =  13
     Hyperparameters.NumDtNeighbors = 200;
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
-    Hyperparameters.K_Known = length(unique(Y))-1; % We subtract 1 since we discard gt labels
     Hyperparameters.Tolerance = 1e-8;
-    K = length(unique(Y));
+    if dataIdx >= 12
+        K = length(unique(Y))-1;
+    else
+        K = length(unique(Y));
+    end
+    Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
+
 
     % ============================== lund ==============================
 
