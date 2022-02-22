@@ -6,26 +6,35 @@
 % Set number of nearest neighbors to use in graph and KDE construction.
 NNs = 10:10:100;
 
+
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-prcts{1} =  45:(100-45)/19:100;
-prcts{5} = 88:(100-88)/19:100;
-prcts{13} = 73:(100-73)/19:100;
-prcts{7} = 5:(55-5)/19:55;
+prcts{1} =  65:(100-65)/19:100;
+prcts{2} =  65:(100-65)/19:100;
+prcts{5} =  88:(100-88)/19:100;
+prcts{11} = 15:(60 -15)/19:60;
+prcts{13} = 0: (45 - 0)/19:45;
 
-numReplicates = 1;
-
+numReplicates = 3;
+ 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  7
+for dataIdx =  [1,2, 5, 11, 13]
+
     prctiles = prcts{dataIdx};
+    if dataIdx == 13
+        % Set number of nearest neighbors to use in graph and KDE construction.
+        NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
+    end
 
     % ===================== Load and Preprocess Data ======================
     
     % Load data
     if dataIdx <7
         load(datasets{dataIdx})
-    end
+        HSI = reshape(X, M,N,size(X,2));
+        GT = reshape(Y,M,N);
+     end
 
     if dataIdx == 6
         
@@ -34,9 +43,9 @@ for dataIdx =  7
 
     end
     if dataIdx == 7 || dataIdx == 8
+        load('Pavia_gt.mat')
+        load('Pavia')
         if dataIdx == 7
-            load('Pavia.mat')
-            load('Pavia_gt.mat')
             HSI = pavia(101:400,241:300,:);
             GT = pavia_gt(101:400,241:300);
         elseif dataIdx == 8
@@ -62,7 +71,7 @@ for dataIdx =  7
             GT = pavia_gt(201:400, 430:530);
         end
         X = reshape(HSI, size(HSI, 1)*size(HSI, 2), size(HSI,3));
-        X = X./vecnorm(X,2,2);
+        X=X./repmat(sqrt(sum(X.*X,1)),size(X,1),1); % Normalize HSI
         HSI = reshape(X, size(HSI, 1),size(HSI, 2), size(HSI,3));
     end
 
@@ -101,13 +110,14 @@ for dataIdx =  7
         Idx_NN = Idx_NN(:,2:end);
     end 
 
-
-
     newGT = zeros(size(GT));
     uniqueClass = unique(GT);
     K = length(uniqueClass);
     for k = 1:K
     newGT(GT==uniqueClass(k)) = k;
+    end
+    if ~(dataIdx==2)
+        K = K-1;
     end
     Y = reshape(newGT,M*N,1);
     GT = newGT;
@@ -123,71 +133,113 @@ for dataIdx =  7
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12
-        K = length(unique(Y))-1;
-    else
-        K = length(unique(Y));
-    end
     Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
 
     % ============================== DVIS ==============================
 
     % Preallocate memory
-    UAcc    = NaN*zeros(length(NNs), length(prctiles), numReplicates);
-    AAcc    = NaN*zeros(length(NNs), length(prctiles), numReplicates);
-    OAs     = NaN*zeros(length(NNs), length(prctiles), numReplicates);
-    kappas  = NaN*zeros(length(NNs), length(prctiles), numReplicates);
-    Cs      = zeros(M*N,length(NNs), length(prctiles), numReplicates);
+    UAcc    = NaN*zeros(length(NNs), length(prctiles));
+    AAcc    = NaN*zeros(length(NNs), length(prctiles));
+    OAs     = NaN*zeros(length(NNs), length(prctiles));
+    kappas  = NaN*zeros(length(NNs), length(prctiles));
+    Cs      = zeros(M*N,length(NNs), length(prctiles));
+
+    tic 
+    pixelPurity = zeros(M*N,1);
+    for k = 1:numReplicates
+
+       
+        if dataIdx >=12
+            Hyperparameters.EndmemberParams.K = K; % compute hysime to get best estimate for number of endmembers
+        else
+            Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
+        end
+        Hyperparameters.EndmemberParams.Algorithm = 'ManyAVMAX';
+        Hyperparameters.EndmemberParams.NumReplicates = 100;
+        
+        [purityTemp, U, A] = compute_purity(X,Hyperparameters);
+        pixelPurity = pixelPurity + purityTemp/numReplicates;
+        disp(['Purity:', 100*k/numReplicates])
+    end
+% end
+% %%
+% for dataIdx = 1
+    
+%     prctiles = 5:10:95;
 
     currentPerf = 0;
     % Run Grid Searches
     for i = 1:length(NNs)
-        for j = 10
-            for k = 1:numReplicates
+        for j = 1:length(prctiles)
 
-                Hyperparameters.DiffusionNN = NNs(i);
-                Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
-                Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
-                if dataIdx >=12
-                    Hyperparameters.EndmemberParams.K = K; % compute hysime to get best estimate for number of endmembers
+            Hyperparameters.DiffusionNN = NNs(i);
+            Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
+            Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
+%             if dataIdx == 12
+%                 UAcc(i,j) = norm(U-U_GT')./norm(U_GT');
+%                 AAcc(i,j) = norm(A-A_GT)./norm(A_GT');
+%             end
+
+            density = KDE_large(Dist_NN, Hyperparameters);
+            [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+
+            if G.EigenVals(2)<1
+                Clusterings = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+
+                if dataIdx == 2
+                    
+                    OAsTemp = zeros(length(Clusterings.K),1);
+                    kappasTemp = zeros(length(Clusterings.K),1);
+                    for t = 1:length(Clusterings.K)
+                        C = alignClusterings(Y,Clusterings.Labels(:,t));
+                        confMat = confusionmat(Y,C);
+
+                        OAsTemp(t) = sum(diag(confMat)/length(C)); 
+
+                        p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+                        kappasTemp(t)=(OAsTemp(t)-p)/(1-p);
+                    end
+
+                    [OAs(i,j), tIdx] = max(OAsTemp);
+                    kappas(i,j) = kappasTemp(tIdx);
+
+                elseif dataIdx == 13
+
+                    OAsTemp = zeros(length(Clusterings.K),1);
+                    kappasTemp = zeros(length(Clusterings.K),1);
+                    for t = 1:length(Clusterings.K)
+                        C = alignClusterings(Y(Y>1)-1, Clusterings.Labels(Y>1,t));
+                        confMat = confusionmat(Y(Y>1)-1,C);
+                        OAsTemp(t) = sum(diag(confMat)/length(C));
+                        p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+                        kappasTemp(t)=(OAsTemp(t)-p)/(1-p);
+                    end
+
+                    [OAs(i,j), tIdx] = max(OAsTemp);
+                    kappas(i,j) = kappasTemp(tIdx);
                 else
-                    Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
+                    [~,~, OAs(i,j), ~, kappas(i,j), tIdx]= measure_performance(Clusterings, Y);
                 end
-                Hyperparameters.EndmemberParams.Algorithm = 'ManyAVMAX';
-                Hyperparameters.EndmemberParams.NumReplicates = 100;
+                C =  Clusterings.Labels(:,tIdx);
+                Cs(:,i,j) = C;
                 
-
-                tic
-                [pixelPurity, U, A] = compute_purity(X,Hyperparameters);
-                toc
-                if dataIdx == 12
-                    UAcc(i,j,k) = norm(U-U_GT')./norm(U_GT');
-                    AAcc(i,j,k) = norm(A-A_GT)./norm(A_GT');
-                end
-
-                density = KDE_large(Dist_NN, Hyperparameters);
-                [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
-
-                if G.EigenVals(2)<1
-                    Clusterings = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
-
-                    [~,~, OAs(i,j,k), ~, kappas(i,j,k), tIdx]= measure_performance(Clusterings, Y);
-                    C =  Clusterings.Labels(:,tIdx);
-                    Cs(:,i,j,k) = C;
-                end
+                currentPerf = OAs(i,j);
+                [maxOA, k] = max(OAs,[],'all');
     
-                disp(['DVIS: '])
-                disp([i/length(NNs), j/length(prctiles), k/numReplicates, currentPerf])
-
+                if currentPerf >= maxOA
+                
+                    [l,j] = ind2sub(size(mean(OAs,3)), k);
+                    stdOA = nanstd(squeeze(OAs(l,j,:)));
+                    save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAXRefined1'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
+                end
             end
-            currentPerf = max(nanmean(OAs,3),[],'all');
-        end 
-        [maxOA, k] = max(nanmean(OAs,3),[],'all');
-        [l,j] = ind2sub(size(mean(OAs,3)), k);
-        stdOA = nanstd(squeeze(OAs(l,j,:)));
-        save(strcat('DVISResults', datasets{dataIdx}, '1ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
+
+            disp(['DVIS: '])
+            disp([i/length(NNs), j/length(prctiles), maxOA])
+        end
 
     end
+    save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAX'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA', "UAcc", "AAcc")
 
 end
 

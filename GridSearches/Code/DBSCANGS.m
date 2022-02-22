@@ -6,11 +6,13 @@
 
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-prctiles = 1:1:99; 
+prctiles = 5:10:45; 
+ 
+%% Grid searches
 
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  [1,5,7]
+for dataIdx =  [1,7]
 
     % ===================== Load and Preprocess Data ======================
     
@@ -26,9 +28,9 @@ for dataIdx =  [1,5,7]
 
     end
     if dataIdx == 7 || dataIdx == 8
+        load('Pavia_gt.mat')
+        load('Pavia')
         if dataIdx == 7
-            load('Pavia.mat')
-            load('Pavia_gt.mat')
             HSI = pavia(101:400,241:300,:);
             GT = pavia_gt(101:400,241:300);
         elseif dataIdx == 8
@@ -54,7 +56,7 @@ for dataIdx =  [1,5,7]
             GT = pavia_gt(201:400, 430:530);
         end
         X = reshape(HSI, size(HSI, 1)*size(HSI, 2), size(HSI,3));
-        X = X./vecnorm(X,2,2);
+        X=X./repmat(sqrt(sum(X.*X,1)),size(X,1),1); % Normalize HSI
         HSI = reshape(X, size(HSI, 1),size(HSI, 2), size(HSI,3));
     end
 
@@ -93,14 +95,13 @@ for dataIdx =  [1,5,7]
         Idx_NN = Idx_NN(:,2:end);
     end 
 
-
-
     newGT = zeros(size(GT));
     uniqueClass = unique(GT);
     K = length(uniqueClass);
     for k = 1:K
     newGT(GT==uniqueClass(k)) = k;
     end
+    K = K-1;  % We subtract 1 since we discard gt labels
     Y = reshape(newGT,M*N,1);
     GT = newGT;
 
@@ -115,42 +116,37 @@ for dataIdx =  [1,5,7]
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12
-        K = length(unique(Y))-1;
-    else
-        K = length(unique(Y));
-    end
-    Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
+    Hyperparameters.K_Known = K;
 
-
-    minPtVals =  floor([3,10:10:3*size(X,2)]);
-
-
+    minPtVals =  floor([3,30:30:3*size(X,2)]);
 
     % ============================== DBSCAN ==============================
 
     % Preallocate memory
     OAs     = NaN*zeros(length(minPtVals),length(prctiles));
+    Ks     = NaN*zeros(length(minPtVals),length(prctiles));
     kappas  = NaN*zeros(length(minPtVals),length(prctiles));
     Cs      = zeros(M*N,length(minPtVals),length(prctiles));
 
     % Run Grid Search 
     for i = 1:length(minPtVals)
-        for j = 1:length(prctiles)
+        parfor j = 1:length(prctiles)
             C = dbscan(X,prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all'),minPtVals(i));
 
-            if length(unique(C)) == length(unique(Y)) 
+            Ks(i,j) = length(unique(C(C>0))); 
+            
 
-                [~,~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
-                Cs(:,i,j) = C;
-            end
+            [~,~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C(C>0), Y(C>0));
+            Cs(:,i,j) = C;
 
             disp(['DBSCAN:'])
             disp([i/length(minPtVals), j/length(prctiles), dataIdx/5])
         end
     end
 
-    save(strcat('DBSCANResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'prctiles', 'minPtVals')
+%     OAs(~(Ks == K)) = NaN;
+
+    save(strcat('DBSCANResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'prctiles', 'minPtVals', 'Ks')
 end
 % % 
 % %% Visualize and save table

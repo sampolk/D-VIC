@@ -13,13 +13,15 @@ alpha = 10;
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  [1,5,7]
+for dataIdx =  11
 
     % ===================== Load and Preprocess Data ======================
     
     % Load data
     if dataIdx <7
         load(datasets{dataIdx})
+        HSI = reshape(X,M,N,size(X,2));
+        GT = reshape(Y,M,N);
     end
 
     if dataIdx == 6
@@ -29,9 +31,9 @@ for dataIdx =  [1,5,7]
 
     end
     if dataIdx == 7 || dataIdx == 8
+        load('Pavia_gt.mat')
+        load('Pavia')
         if dataIdx == 7
-            load('Pavia.mat')
-            load('Pavia_gt.mat')
             HSI = pavia(101:400,241:300,:);
             GT = pavia_gt(101:400,241:300);
         elseif dataIdx == 8
@@ -57,7 +59,7 @@ for dataIdx =  [1,5,7]
             GT = pavia_gt(201:400, 430:530);
         end
         X = reshape(HSI, size(HSI, 1)*size(HSI, 2), size(HSI,3));
-        X = X./vecnorm(X,2,2);
+        X=X./repmat(sqrt(sum(X.*X,1)),size(X,1),1); % Normalize HSI
         HSI = reshape(X, size(HSI, 1),size(HSI, 2), size(HSI,3));
     end
 
@@ -96,13 +98,14 @@ for dataIdx =  [1,5,7]
         Idx_NN = Idx_NN(:,2:end);
     end 
 
-
-
     newGT = zeros(size(GT));
     uniqueClass = unique(GT);
     K = length(uniqueClass);
     for k = 1:K
     newGT(GT==uniqueClass(k)) = k;
+    end
+    if ~(dataIdx == 2)
+        K = K-1;  % We subtract 1 since we discard gt labels
     end
     Y = reshape(newGT,M*N,1);
     GT = newGT;
@@ -118,14 +121,8 @@ for dataIdx =  [1,5,7]
     Hyperparameters.Beta = 2;
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
-    if dataIdx >= 12
-        K = length(unique(Y))-1;
-    else
-        K = length(unique(Y));
-    end
-    Hyperparameters.K_Known = K; % We subtract 1 since we discard gt labels
-
-
+    Hyperparameters.K_Known = K;
+    
     % ============================== knnssc ==============================
  
     % Preallocate memory
@@ -134,18 +131,30 @@ for dataIdx =  [1,5,7]
     Cs      = zeros(M*N,length(NNs));
 
     % Run Grid Searches
-    for i = 1:length(NNs)
+    parfor i = 1:length(NNs)
  
         W = knn_SSC( X', alpha, NNs(i), Idx_NN);
-        [~,C] = spectral_clustering(abs(W)+abs(W'),Hyperparameters.K_Known,Y);
-        [~,~, OAs(i), ~, kappas(i)]= measure_performance(C, Y);
+        if dataIdx == 2
+            [~,C] = spectral_clustering(abs(W)+abs(W'),K,Y);  
+            C = alignClusterings(Y,C);
+            confMat = confusionmat(Y,C);
+
+            OAs(i) = sum(diag(confMat)/length(C)); 
+
+            p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+            kappas(i)=(OAs(i)-p)/(1-p);
+        else
+            [~,C] = spectral_clustering(abs(W)+abs(W'),K,Y-1);
+            [~,~, OAs(i), ~, kappas(i)]= measure_performance(C, Y);
+        end
+        thisK = length(unique(C));
         Cs(:,i) = C;
 
         disp(['KNNSSC: '])
-        disp([i/length(NNs), dataIdx/5])
+        disp([i/length(NNs),  thisK])
     end
+        save(strcat('KNNSSCResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs')
 
-    save(strcat('KNNSSCResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs')
 end
 
 % 
