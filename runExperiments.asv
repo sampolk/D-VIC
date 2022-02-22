@@ -10,9 +10,7 @@ runtimeTable = zeros(9,4);
 
 % Load optimal hyperparameters
 load('results', 'hyperparameters')
-
-numReplicates = 10;
-
+ 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
@@ -21,6 +19,7 @@ for dataIdx =  [1,2, 5, 11]
 
     ct = ct+1;
 
+    prctiles = prcts{dataIdx};
     if dataIdx == 13
         % Set number of nearest neighbors to use in graph and KDE construction.
         NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
@@ -129,11 +128,8 @@ for dataIdx =  [1,2, 5, 11]
     % ============================== DVIS ==============================
 
     Hyperparameters = hyperparameters{ct,9};
-    Hyperparameters.SpatialParams.ImageSize = [M,N];
     runtimeTemp = zeros(numReplicates,1);
-    OATemp = zeros(numReplicates,1);
-    kappaTemp = zeros(numReplicates,1);
-
+    OATemp = 
     for i = 1:numReplicates
 
         tic
@@ -142,7 +138,7 @@ for dataIdx =  [1,2, 5, 11]
         Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
         Hyperparameters.EndmemberParams.Algorithm = 'ManyAVMAX';
         Hyperparameters.EndmemberParams.NumReplicates = 100;
-        [pixelPurity, ~, ~] = compute_purity(X,Hyperparameters);
+        [purityTemp, ~, ~] = compute_purity(X,Hyperparameters);
 
         % Perform nearest neighbor search
         [Idx_NN, Dist_NN] = knnsearch(X,X,'K', Hyperparameters.DiffusionNN); 
@@ -159,44 +155,41 @@ for dataIdx =  [1,2, 5, 11]
             % Jasper Ridge has no unlabeled pixels. So no exclusion for
             % performance analysis
             
-            thisOAsTemp = zeros(length(Clusterings.K),1);
-            thiskappasTemp = zeros(length(Clusterings.K),1);
+            ThisOAsTemp = zeros(length(Clusterings.K),1);
+            kappasTemp = zeros(length(Clusterings.K),1);
             for t = 1:length(Clusterings.K)
 
                 C = alignClusterings(Y,Clusterings.Labels(:,t));
                 confMat = confusionmat(Y,C);
     
-                thisOAsTemp(t) = sum(diag(confMat)/length(C)); 
+                ThisOAsTemp(t) = sum(diag(confMat)/length(C)); 
                 p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
-                thiskappasTemp(t)=(thisOAsTemp(t)-p)/(1-p);
+                kappasTemp(t)=(ThisOAsTemp(t)-p)/(1-p);
             end
     
-            [OATemp(i), tIdx] = max(thisOAsTemp);
-            kappaTemp(i) = thiskappasTemp(tIdx);
+            [OATable(i,j), tIdx] = max(ThisOAsTemp);
+            kappas(i,j) = kappasTemp(tIdx);
     
         else
-            % We exclude unlabeled pixels for remaining datasets 
-
-            thisOAsTemp = zeros(length(Clusterings.K),1);
-            thiskappasTemp = zeros(length(Clusterings.K),1);
+            ThisOAsTemp = zeros(length(Clusterings.K),1);
+            kappasTemp = zeros(length(Clusterings.K),1);
             for t = 1:length(Clusterings.K)
-                C = alignClusterings(Y(Y>1),Clusterings.Labels(Y>1,t));
-                confMat = confusionmat(Y(Y>1)-1,C); % confusion matrix for labeled pixels
+                C = alignClusterings(Y,Clusterings.Labels(:,t));
+                confMat = confusionmat(Y,C);
     
-                thisOAsTemp(t) = sum(diag(confMat)/length(C)); 
+                ThisOAsTemp(t) = sum(diag(confMat)/length(C)); 
     
                 p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
-                thiskappasTemp(t)=(thisOAsTemp(t)-p)/(1-p);
+                kappasTemp(t)=(ThisOAsTemp(t)-p)/(1-p);
             end
     
-            [OATemp(i), tIdx] = max(thisOAsTemp);
-            kappaTemp(i) = thiskappasTemp(tIdx);
+            [OAs(i,j), tIdx] = max(ThisOAsTemp);
+            kappas(i,j) = kappasTemp(tIdx);
         end
-    end
 
-    runtimeTable(9,ct) = mean(runtimeTemp);
-    OATable(9,ct) = mean(OATemp);
-    kappaTable(9,ct) = mean(kappaTemp); 
+        C =  Clusterings.Labels(:,tIdx);
+        Cs(:,i,j) = C;
+    end
 
 end
  
