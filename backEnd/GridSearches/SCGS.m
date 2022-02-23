@@ -1,9 +1,15 @@
-%% KMeans
-% Extracts performances for K-Means
+%% SC
+% Extracts performances for SC
+
+
+%% Grid Search Parameters
+   
+% Set number of nearest neighbors to use in graph and KDE construction.
+NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 
 numReplicates = 10;
 
-%% Run K-Means
+%% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
 for dataIdx =  [9:11]
@@ -13,8 +19,6 @@ for dataIdx =  [9:11]
     % Load data
     if dataIdx <7
         load(datasets{dataIdx})
-        HSI = reshape(X, M,N,size(X,2));
-        GT = reshape(Y,M,N);
     end
 
     if dataIdx == 6
@@ -116,43 +120,48 @@ for dataIdx =  [9:11]
     Hyperparameters.Tolerance = 1e-8;
     Hyperparameters.K_Known = K;
 
-    % ============================== K-Means ==============================
+    % ============================== SC ==============================
 
-    % Run over 10 trials
-    OATemp = zeros(numReplicates,1);
-    KappaTemp = zeros(numReplicates,1);
-    Cs = zeros(M*N,numReplicates);
-    parfor i = 1:numReplicates
-        C = kmeans(X, K);     
+    % Preallocate memory
+    OAs     = NaN*zeros(length(NNs),numReplicates);
+    kappas  = NaN*zeros(length(NNs), numReplicates);
+    Cs      = zeros(M*N,length(NNs), numReplicates);
 
-        if dataIdx == 2
-            C = alignClusterings(Y,C);
-            confMat = confusionmat(Y,C);
+    % Run Grid Searches
+    for i = 1:length(NNs)
 
-            OATemp(i) = sum(diag(confMat)/length(C)); 
+        Hyperparameters.DiffusionNN = NNs(i);
+        Hyperparameters.SpatialParams.ImageSize = [M,N];
+        [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
 
-            p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
-            KappaTemp(i)=(OATemp(i)-p)/(1-p);
-        else
-            [~, ~, OATemp(i), ~, KappaTemp(i)]= measure_performance(C, Y);
+        if G.EigenVals(2)<1
+
+            parfor j = 1:numReplicates
+                C = SpectralClustering(G,K);
+
+                if dataIdx == 2
+                    C = alignClusterings(Y,C);
+                    confMat = confusionmat(Y,C);
+            
+                    OAs(i,j) = sum(diag(confMat)/length(C)); 
+            
+                    p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+                    kappas(i,j)=(OAs(i,j)-p)/(1-p);
+
+                else
+                    [~,~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
+                end
+                Cs(:,i,j) = C;
+        
+                disp('SC')
+                disp([i/length(NNs), j/numReplicates, dataIdx/5])
+            end
         end
-        Cs(:,i) = C;
-
-        disp(['KMeans: '])
-        disp([i/numReplicates, dataIdx/5])
     end
-    
-    % Average performance across 10 runs
-    OA = mean(OATemp);
-    Kappa = mean(KappaTemp);
 
-    % Save "centroid" clustering
-    [~,i] = min(abs(OA-OATemp));
-    C = Cs(:,i);
-    save(strcat('KMeansResults', datasets{dataIdx}), 'C', 'OA', 'Kappa')
-
+    save(strcat('SCResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs', 'numReplicates')
 end
-
+% 
 % 
 % %% Visualize and save table
 % clear
@@ -167,28 +176,31 @@ end
 %     load(datasets{dataIdx})
 % 
 %     % Load results
-%     load(strcat('KMeansResults', datasets{dataIdx}))
+%     load(strcat('SCResults', datasets{dataIdx}))
 % 
-%     % Performances
-%     OATable(dataIdx) = OA;
-%     KappaTable(dataIdx) = Kappa;
+%     % Find optimal hyperparameters
+%     [OATable(dataIdx), k] = max(mean(OAs,2));
+%     KappaTable(dataIdx) = kappas(k);
+%     NN = NNs(k);
+%     [~,i] = min(abs(OAs(k,:) - mean(OAs(k,:))));
+%     C = Cs(:,k,i);
 % 
 %     % Save optimal results
-%     save(strcat('KMeansClustering', datasets{dataIdx}), 'C')
+%     save(strcat('SCClustering', datasets{dataIdx}), 'C', 'NN')
 % 
 %     % Visualize clustering
 %     h = figure;
 %     eda(C, 0, Y)
-%     title('$K$-Means Clustering', 'interpreter', 'latex', 'FontSize', 16)
+%     title('SC Clustering', 'interpreter', 'latex', 'FontSize', 16)
 % 
 %     % Save Figure
-%     fileName = strcat(datasets{dataIdx}, 'KMeans');
+%     fileName = strcat(datasets{dataIdx}, 'SC');
 %     save(fileName, 'C')
 %     savefig(h, fileName)
 %     saveas(h, fileName, 'epsc')   
 % 
 % end
 % 
-% save('KMeansPerformances', 'KappaTable', 'OATable')
+% save('SCPerformances', 'KappaTable', 'OATable')
 % 
 % close all

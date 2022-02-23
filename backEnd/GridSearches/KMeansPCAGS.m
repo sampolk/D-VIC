@@ -1,4 +1,4 @@
-%% KMeans
+%% KMeans+PCA
 % Extracts performances for K-Means+PCA
 
 numReplicates = 10;

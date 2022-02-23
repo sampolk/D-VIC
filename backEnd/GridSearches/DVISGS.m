@@ -18,7 +18,7 @@ numReplicates = 10;
  
 %% Grid searches
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
-datasetNames = {'Salinas A', 'Jasper Ridge',  'Pavia Subset', 'Indian Pines', 'Synthetic HSI'};
+datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
 
 for dataIdx =  2:5
 
@@ -89,7 +89,7 @@ for dataIdx =  2:5
                 
                     [l,j] = ind2sub(size(mean(OAs,3)), k);
                     stdOA = nanstd(squeeze(OAs(l,j,:)));
-                    save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAXNew'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
+                    save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
                 end
             end
 
@@ -98,39 +98,6 @@ for dataIdx =  2:5
         end
 
     end
-    save(strcat('DVISResults', datasets{dataIdx}, 'ManyAVMAXNew'),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
+    save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
 
 end
-
-% 
-% %% 
-% OAs = zeros(length(NNs), length(prctiles), numReplicates);
-% kappas  = zeros(length(NNs), length(prctiles), numReplicates);
-% CAgg = zeros(length(X), length(NNs), length(prctiles), numReplicates);
-% 
-% % Run Grid Searches
-% for i = 1:length(NNs)
-%     for j = 1:length(prctiles) 
-%         for k = 1:numReplicates
-%             C = Cs(:,i,j,k);                    
-%             [~,~, OAs(i,j,k), ~, kappas(i,j,k), tIdx]= measure_performance(C, Y);
-%         end
-% 
-%         OAs(i,j,:) = OAtemp;
-%         kappas(i,j,:) = kappatemp;
-% 
-%         if mean(squeeze( OAs(i,j,:)))== max(mean(OAs, 3), [],'all')
-% 
-%             OA = mean(OAtemp);
-%             kappa = mean(kappatemp);
-%             [~,k] = min(abs(OA - OAtemp));
-%             C = Cs(:,i,j,k);
-%             NN = NNs(i);
-%             sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all')
-%             save('optimalJasperRidgeClustering', 'C', 'OA', 'AA', 'kappa','NN')
-%         end
-% 
-% 
-%     end
-% end
-%  

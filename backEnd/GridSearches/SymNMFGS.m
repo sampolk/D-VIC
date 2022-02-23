@@ -1,5 +1,5 @@
-%% SC
-% Extracts performances for SC
+%% SymNMF
+% Extracts performances for SymNMF
 
 
 %% Grid Search Parameters
@@ -7,6 +7,7 @@
 % Set number of nearest neighbors to use in graph and KDE construction.
 NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
 
+% Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 numReplicates = 10;
 
 %% Grid searches
@@ -19,6 +20,8 @@ for dataIdx =  [9:11]
     % Load data
     if dataIdx <7
         load(datasets{dataIdx})
+        HSI = reshape(X, M,N,size(X,2));
+        GT = reshape(Y,M,N);
     end
 
     if dataIdx == 6
@@ -119,49 +122,40 @@ for dataIdx =  [9:11]
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
     Hyperparameters.K_Known = K;
-
-    % ============================== SC ==============================
+    % ============================== SymNMF ==============================
 
     % Preallocate memory
-    OAs     = NaN*zeros(length(NNs),numReplicates);
-    kappas  = NaN*zeros(length(NNs), numReplicates);
-    Cs      = zeros(M*N,length(NNs), numReplicates);
+    OAs     = NaN*zeros(length(NNs),1);
+    kappas  = NaN*zeros(length(NNs), 1);
+    Cs      = zeros(M*N,length(NNs),numReplicates);
 
     % Run Grid Searches
     for i = 1:length(NNs)
+        options.kk = NNs(i);
+        parfor j = 1:numReplicates
+            C = symnmf_cluster(X, K, options, Idx_NN);
+            if dataIdx == 2
+                C = alignClusterings(Y,C);
+                confMat = confusionmat(Y,C);
 
-        Hyperparameters.DiffusionNN = NNs(i);
-        Hyperparameters.SpatialParams.ImageSize = [M,N];
-        [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+                OAs(i,j) = sum(diag(confMat)/length(C)); 
 
-        if G.EigenVals(2)<1
+                p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+                kappas(i,j)=(OAs(i,j)-p)/(1-p);
 
-            parfor j = 1:numReplicates
-                C = SpectralClustering(G,K);
-
-                if dataIdx == 2
-                    C = alignClusterings(Y,C);
-                    confMat = confusionmat(Y,C);
-            
-                    OAs(i,j) = sum(diag(confMat)/length(C)); 
-            
-                    p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
-                    kappas(i,j)=(OAs(i,j)-p)/(1-p);
-
-                else
-                    [~,~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
-                end
-                Cs(:,i,j) = C;
-        
-                disp('SC')
-                disp([i/length(NNs), j/numReplicates, dataIdx/5])
+            else
+                [~, ~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
             end
+            Cs(:,i,j) = C;
+            disp('SymNMF:')
+            disp([ i/length(NNs), j/numReplicates, dataIdx/5])
+
         end
     end
 
-    save(strcat('SCResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs', 'numReplicates')
+    save(strcat('SymNMFResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs', 'numReplicates')
 end
-% 
+
 % 
 % %% Visualize and save table
 % clear
@@ -176,7 +170,7 @@ end
 %     load(datasets{dataIdx})
 % 
 %     % Load results
-%     load(strcat('SCResults', datasets{dataIdx}))
+%     load(strcat('SymNMFResults', datasets{dataIdx}))
 % 
 %     % Find optimal hyperparameters
 %     [OATable(dataIdx), k] = max(mean(OAs,2));
@@ -186,21 +180,21 @@ end
 %     C = Cs(:,k,i);
 % 
 %     % Save optimal results
-%     save(strcat('SCClustering', datasets{dataIdx}), 'C', 'NN')
+%     save(strcat('SymNMFClustering', datasets{dataIdx}), 'C', 'NN')
 % 
 %     % Visualize clustering
 %     h = figure;
 %     eda(C, 0, Y)
-%     title('SC Clustering', 'interpreter', 'latex', 'FontSize', 16)
+%     title('SymNMF Clustering', 'interpreter', 'latex', 'FontSize', 16)
 % 
 %     % Save Figure
-%     fileName = strcat(datasets{dataIdx}, 'SC');
+%     fileName = strcat(datasets{dataIdx}, 'SymNMF');
 %     save(fileName, 'C')
 %     savefig(h, fileName)
 %     saveas(h, fileName, 'epsc')   
 % 
 % end
 % 
-% save('SCPerformances', 'KappaTable', 'OATable')
+% save('SymNMFPerformances', 'KappaTable', 'OATable')
 % 
 % close all

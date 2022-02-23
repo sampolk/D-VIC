@@ -1,16 +1,9 @@
-%% SymNMF
-% Extracts performances for SymNMF
+%% KMeans
+% Extracts performances for K-Means
 
-
-%% Grid Search Parameters
-   
-% Set number of nearest neighbors to use in graph and KDE construction.
-NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
-
-% Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 numReplicates = 10;
 
-%% Grid searches
+%% Run K-Means
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
 for dataIdx =  [9:11]
@@ -122,38 +115,42 @@ for dataIdx =  [9:11]
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
     Hyperparameters.K_Known = K;
-    % ============================== SymNMF ==============================
 
-    % Preallocate memory
-    OAs     = NaN*zeros(length(NNs),1);
-    kappas  = NaN*zeros(length(NNs), 1);
-    Cs      = zeros(M*N,length(NNs),numReplicates);
+    % ============================== K-Means ==============================
 
-    % Run Grid Searches
-    for i = 1:length(NNs)
-        options.kk = NNs(i);
-        parfor j = 1:numReplicates
-            C = symnmf_cluster(X, K, options, Idx_NN);
-            if dataIdx == 2
-                C = alignClusterings(Y,C);
-                confMat = confusionmat(Y,C);
+    % Run over 10 trials
+    OATemp = zeros(numReplicates,1);
+    KappaTemp = zeros(numReplicates,1);
+    Cs = zeros(M*N,numReplicates);
+    parfor i = 1:numReplicates
+        C = kmeans(X, K);     
 
-                OAs(i,j) = sum(diag(confMat)/length(C)); 
+        if dataIdx == 2
+            C = alignClusterings(Y,C);
+            confMat = confusionmat(Y,C);
 
-                p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
-                kappas(i,j)=(OAs(i,j)-p)/(1-p);
+            OATemp(i) = sum(diag(confMat)/length(C)); 
 
-            else
-                [~, ~, OAs(i,j), ~, kappas(i,j)]= measure_performance(C, Y);
-            end
-            Cs(:,i,j) = C;
-            disp('SymNMF:')
-            disp([ i/length(NNs), j/numReplicates, dataIdx/5])
-
+            p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+            KappaTemp(i)=(OATemp(i)-p)/(1-p);
+        else
+            [~, ~, OATemp(i), ~, KappaTemp(i)]= measure_performance(C, Y);
         end
-    end
+        Cs(:,i) = C;
 
-    save(strcat('SymNMFResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs', 'numReplicates')
+        disp(['KMeans: '])
+        disp([i/numReplicates, dataIdx/5])
+    end
+    
+    % Average performance across 10 runs
+    OA = mean(OATemp);
+    Kappa = mean(KappaTemp);
+
+    % Save "centroid" clustering
+    [~,i] = min(abs(OA-OATemp));
+    C = Cs(:,i);
+    save(strcat('KMeansResults', datasets{dataIdx}), 'C', 'OA', 'Kappa')
+
 end
 
 % 
@@ -170,31 +167,28 @@ end
 %     load(datasets{dataIdx})
 % 
 %     % Load results
-%     load(strcat('SymNMFResults', datasets{dataIdx}))
+%     load(strcat('KMeansResults', datasets{dataIdx}))
 % 
-%     % Find optimal hyperparameters
-%     [OATable(dataIdx), k] = max(mean(OAs,2));
-%     KappaTable(dataIdx) = kappas(k);
-%     NN = NNs(k);
-%     [~,i] = min(abs(OAs(k,:) - mean(OAs(k,:))));
-%     C = Cs(:,k,i);
+%     % Performances
+%     OATable(dataIdx) = OA;
+%     KappaTable(dataIdx) = Kappa;
 % 
 %     % Save optimal results
-%     save(strcat('SymNMFClustering', datasets{dataIdx}), 'C', 'NN')
+%     save(strcat('KMeansClustering', datasets{dataIdx}), 'C')
 % 
 %     % Visualize clustering
 %     h = figure;
 %     eda(C, 0, Y)
-%     title('SymNMF Clustering', 'interpreter', 'latex', 'FontSize', 16)
+%     title('$K$-Means Clustering', 'interpreter', 'latex', 'FontSize', 16)
 % 
 %     % Save Figure
-%     fileName = strcat(datasets{dataIdx}, 'SymNMF');
+%     fileName = strcat(datasets{dataIdx}, 'KMeans');
 %     save(fileName, 'C')
 %     savefig(h, fileName)
 %     saveas(h, fileName, 'epsc')   
 % 
 % end
 % 
-% save('SymNMFPerformances', 'KappaTable', 'OATable')
+% save('KMeansPerformances', 'KappaTable', 'OATable')
 % 
 % close all

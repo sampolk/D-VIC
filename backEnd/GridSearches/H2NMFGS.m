@@ -1,26 +1,17 @@
-%% knnssc
-% Extracts performances for knnssc
-
-
-%% Grid Search Parameters
-   
-% Set number of nearest neighbors to use in graph and KDE construction.
-NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
-
-% Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-alpha = 10;
+%% H2NMF
+% Extracts performances for H2NMF
 
 %% Grid searches
 datasets = {'IndianPinesCorrected', 'JasperRidge', 'PaviaU', 'SalinasCorrected', 'SalinasACorrected', 'KSCSubset', 'PaviaSubset1', 'PaviaSubset2', 'Botswana', 'PaviaCenterSubset1',  'PaviaCenterSubset2', 'syntheticHSI5050', 'syntheticHSI5149Stretched'};
 
-for dataIdx =  11
+for dataIdx =  [9:11]
 
     % ===================== Load and Preprocess Data ======================
     
     % Load data
     if dataIdx <7
         load(datasets{dataIdx})
-        HSI = reshape(X,M,N,size(X,2));
+        HSI = reshape(X, M,N,size(X,2));
         GT = reshape(Y,M,N);
     end
 
@@ -104,8 +95,8 @@ for dataIdx =  11
     for k = 1:K
     newGT(GT==uniqueClass(k)) = k;
     end
-    if ~(dataIdx == 2)
-        K = K-1;  % We subtract 1 since we discard gt labels
+    if ~(dataIdx==2)
+        K = K-1;
     end
     Y = reshape(newGT,M*N,1);
     GT = newGT;
@@ -122,39 +113,27 @@ for dataIdx =  11
     Hyperparameters.Tau = 10^(-5);
     Hyperparameters.Tolerance = 1e-8;
     Hyperparameters.K_Known = K;
-    
-    % ============================== knnssc ==============================
- 
-    % Preallocate memory
-    OAs     = NaN*zeros(length(NNs),1);
-    kappas  = NaN*zeros(length(NNs), 1);
-    Cs      = zeros(M*N,length(NNs));
 
-    % Run Grid Searches
-    parfor i = 1:length(NNs)
- 
-        W = knn_SSC( X', alpha, NNs(i), Idx_NN);
-        if dataIdx == 2
-            [~,C] = spectral_clustering(abs(W)+abs(W'),K,Y);  
-            C = alignClusterings(Y,C);
-            confMat = confusionmat(Y,C);
+    % ============================== H2NMF ==============================
+     
+    C = hierclust2nmf(X'-min(X,[],'all'),K);
 
-            OAs(i) = sum(diag(confMat)/length(C)); 
+    if dataIdx == 2
+        C = alignClusterings(Y,C);
+        confMat = confusionmat(Y,C);
 
-            p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
-            kappas(i)=(OAs(i)-p)/(1-p);
-        else
-            [~,C] = spectral_clustering(abs(W)+abs(W'),K,Y-1);
-            [~,~, OAs(i), ~, kappas(i)]= measure_performance(C, Y);
-        end
-        thisK = length(unique(C));
-        Cs(:,i) = C;
+        OA = sum(diag(confMat)/length(C)); 
 
-        disp(['KNNSSC: '])
-        disp([i/length(NNs),  thisK])
+        p=nansum(confMat,2)'*nansum(confMat)'/(nansum(nansum(confMat)))^2;
+        Kappa=(OA-p)/(1-p);
+    else
+        [~, ~, OA , ~, Kappa]= measure_performance(C, Y);
     end
-        save(strcat('KNNSSCResults', datasets{dataIdx}), 'OAs', 'kappas','Cs', 'NNs')
+    disp(['H2NMF: '])
+    disp([dataIdx/5])
 
+
+    save(strcat('H2NMFResults', datasets{dataIdx}), 'C', 'OA', 'Kappa')
 end
 
 % 
@@ -165,36 +144,34 @@ end
 % 
 % OATable = zeros(5,1);
 % KappaTable = zeros(5,1);
-% for dataIdx = [1,2, 5]
+% for dataIdx = 1:5
 %     
 %      % Load data
 %     load(datasets{dataIdx})
 % 
 %     % Load results
-%     load(strcat('KNNSSCResults', datasets{dataIdx}))
+%     load(strcat('H2NMFResults', datasets{dataIdx}))
 % 
-%     % Find optimal hyperparameters
-%     [OATable(dataIdx), k] = max(OAs);
-%     KappaTable(dataIdx) = kappas(k);
-%     NN = NNs(k);
-%     C = Cs(:,k);
+%     % Performances
+%     OATable(dataIdx) = OA;
+%     KappaTable(dataIdx) = Kappa;
 % 
 %     % Save optimal results
-%     save(strcat('KNNSSCClustering', datasets{dataIdx}), 'C', 'NN')
+%     save(strcat('H2NMFClustering', datasets{dataIdx}), 'C')
 % 
 %     % Visualize clustering
 %     h = figure;
 %     eda(C, 0, Y)
-%     title('KNN-SSC Clustering', 'interpreter', 'latex', 'FontSize', 16)
+%     title('H2NMF Clustering', 'interpreter', 'latex', 'FontSize', 16)
 % 
 %     % Save Figure
-%     fileName = strcat(datasets{dataIdx}, 'KNNSSC');
+%     fileName = strcat(datasets{dataIdx}, 'H2NMF');
 %     save(fileName, 'C')
 %     savefig(h, fileName)
 %     saveas(h, fileName, 'epsc')   
 % 
 % end
 % 
-% save('KNNSSCPerformances', 'KappaTable', 'OATable')
+% save('H2NMFPerformances', 'KappaTable', 'OATable')
 % 
 % close all
