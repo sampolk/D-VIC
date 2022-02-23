@@ -1,4 +1,4 @@
-function Clusterings = MLUND_large(X, Hyperparameters, G, p)
+function [Clusterings,runtimes] = MLUND_large(X, Hyperparameters, G, p)
 %{
  - This function produces a structure with multiscale clusterings produced
    with the M-LUND algorithm, presented in the following paper. 
@@ -51,9 +51,12 @@ if isreal(T)
     Ct = zeros(n,T+2);
     Kt = zeros(T+2,1);
     Dt = zeros(n,T+2);
+    runtimes = zeros(T+2,1);
     for i = 1:T+2
         t = timesamples(i);
+        tic
         [C, K, Dt_temp] = LearningbyUnsupervisedNonlinearDiffusion_large(X, Hyperparameters, t, G, p);
+        runtimes(i) = toc;
         Ct(:,i) = C;
         Kt(i) = K;
         Dt(:,i) = Dt_temp;

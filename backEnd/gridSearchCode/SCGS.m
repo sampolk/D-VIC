@@ -131,6 +131,7 @@ for dataIdx =  [9:11]
     for i = 1:length(NNs)
 
         Hyperparameters.DiffusionNN = NNs(i);
+        Hyperparameters.SpatialParams.ImageSize = [M,N];
         [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
 
         if G.EigenVals(2)<1

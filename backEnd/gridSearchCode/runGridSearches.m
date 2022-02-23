@@ -206,7 +206,7 @@ for i = 1:4
     axis equal tight
     title([datasetsFormal{i}, ' Ground Truth'], 'interpreter','latex', 'FontSize', 17) 
      
-    saveas(h, strcat(datasets{i}, 'GT'), 'jpg')
+    saveas(h, strcat(datasets{i}, 'GT'), 'epsc')
 
     h = figure;
     [~,scores] = pca(X);
@@ -258,7 +258,7 @@ for i = 1:4
         axis equal tight
         title([algsFormal{j}, ' Clustering of ' datasetsFormal{i}], 'interpreter','latex', 'FontSize', 17) 
          
-        saveas(h, strcat(datasets{i}, algs{j}), 'jpg')
+        saveas(h, strcat(datasets{i}, algs{j}), 'epsc')
     end
 end
 close all 
@@ -312,14 +312,14 @@ for i = 1:4
     ylabel('$N$', 'interpreter', 'latex')
     yticks(2:2:10)
     yticklabels(NNs(2:2:10))
-    axis tight
+    axis tight equal
 
     a = colorbar;
-    a.Label.String = 'OA (%)';
+    a.Label.String = 'OA';
 
     set(gca,'FontSize', 14, 'FontName', 'Times')
     title(['D-VIS Performance on ' datasetsFormal{i}], 'interpreter','latex', 'FontSize', 17) 
-    saveas(h, strcat(datasets{i}, 'Robustness'), 'jpg')
+    saveas(h, strcat(datasets{i}, 'Robustness'), 'epsc')
 
     
     x = reshape(mat, numel(mat),1);
@@ -334,9 +334,75 @@ close all
 
 
 
+%% Synthetic data visualization
+
+load('syntheticHSI5149Stretched.mat')
+
+h = figure;
+imagesc(GT)
+xticks([])
+yticks([])
+axis equal tight
+title(['Synthetic HSI Ground Truth'], 'interpreter','latex', 'FontSize', 17) 
+ 
+saveas(h, 'SyntheticGT', 'epsc')
+
+h = figure;
+[~,scores] = pca(X);
+imagesc(reshape(scores(:,1), M,N))
 
 
+a = colorbar;
+%     a.Label.String = 'OA (%)';
+xticks([])
+yticks([])
+axis equal tight
+title(['First Principal Component Scores'], 'interpreter','latex', 'FontSize', 17) 
+set(gca,'FontName', 'Times', 'FontSize', 14)
+saveas(h, 'SyntheticPC', 'epsc')
+
+close all 
+
+%%
+
+load('LUNDResultssyntheticHSI5149Stretched')
+
+[OAstats(1),k] = max(OAs,[],'all');
+[i,j] = ind2sub(size(OAs),k);
+C = Cs(:,i,j);
+C(Y == 0 ) = 0;
+C = alignClusterings(Y, C);
 
 
+h = figure;
+imagesc(reshape(C, M,N))
+xticks([])
+yticks([])
+axis equal tight
+title(['Optimal LUND Clustering of Synthetic HSI'], 'interpreter','latex', 'FontSize', 17) 
+ 
+saveas(h, 'SyntheticLUND', 'epsc')
 
+clear C
+load('DVISResultssyntheticHSI5149StretchedManyAVMAX')
+
+[OAstats(2),k] = max(OAs,[],'all');
+[i,j] = ind2sub(size(OAs),k);
+C = Cs(:,i,j);
+C(Y == 0 ) = 0;
+C = alignClusterings(Y, C);
+
+h = figure;
+imagesc(reshape(C, M,N))
+xticks([])
+yticks([])
+axis equal tight
+title(['Optimal D-VIS Clustering of Synthetic HSI'], 'interpreter','latex', 'FontSize', 17) 
+ 
+saveas(h, 'SyntheticDVIS', 'epsc')
+
+close all 
+
+
+disp(OAstats)
 

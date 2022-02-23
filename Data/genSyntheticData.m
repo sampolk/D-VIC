@@ -1,6 +1,5 @@
 %% Generate synthetic HSI
 %{
-
 The motivation behind D-VIS is that not all high-density pixels necessarily 
 correspond to underlying material structure because hyperspectral images 
 are generated at a coarse spatial resolution. A density maximizer could 
@@ -22,8 +21,6 @@ high-density pixels that are not indicative of underlying material
 structure. So, it will choose better cluster modes. 
 
 %}
-clear
-clc
 %% Set Dimensions
 M = 100;
 N = 100;
@@ -58,9 +55,6 @@ GT(2:24, 77:99) = 4;
 GT(27:49,77:99)= 5;
 GT(52:74,77:99)= 1;
 GT(77:99, 77:99) = 2;
-
-imagesc(GT)
-axis equal tight
  
 %% Create Ground Truth Endmembers
 % random orthonormal vectors
@@ -142,74 +136,10 @@ end
 %% Construct dataset via linear mixing model
 
 X = A*U' + 0.2*abs(randn(n,D));
+HSI = reshape(X,M,N,D);
 
-%% Visualizations
-
-% ground truth abundances
-
-for k = 1:5
-    subplot(2,3,k)
-
-    imagesc(reshape(A(:,k), M,N))
-    colorbar
-    title(strcat('Abundance for endmember-', num2str(k)))
-end
-
-subplot(2,3,6)
-imagesc(GT)
-title('Ground Truth Labels')
-
-disp(nmi(kmeans(X,5), Y))
- 
-
-%% 
-
-colors = {'k', '#4658F8', '#2896EB', '#13BEB8', '#80CA57', '#FCBB3D'  };
-rgb_key = [[0,0,0]; [0.275,0.345,0.973]; [15.7,58.8, 92.2]./100; [7.5, 74.5, 72.2]./100; [50.2,79.2,34.1]./100; [98.8, 73.3, 23.9]./100 ];
-
-c_data = zeros(M,N, 3);
-for i = 1:M
-    for j = 1:N
-        c_data(i,j,:) = rgb_key(GT(i,j)+1,:);
-    end
-end
-
-subplot(1,2,1)
-image(c_data)
-title('Synthetic Data Ground Truth', 'interpreter', 'latex')
-xticks([])
-yticks([])
-pbaspect([1,1,1])
-set(gca,'FontName', 'Times', 'FontSize', 20)
-
-subplot(1,2,2)
-hold on 
-for k = 1:length(unique(Y))
-    
-    XkIdx = find(Y == k-min(Y)-1);
-
-    for i = 1:5
-
-        sample = randsample(length(XkIdx),1);
-        c = colors(k);
-        plot(1:D, X(XkIdx(sample),:),'Color', c{1})
-
-    end
-end
-axis tight
-box on
-title('Randomly Selected Pixel Spectra, Colored by Class', 'interpreter', 'latex')
-xlabel('Spectral Band Number')
-ylabel('Reflectance')
-
-pbaspect([1,1,1])
-set(gca,'FontName', 'Times', 'FontSize', 20)
-
-%% 
-A_GT = A;
-U_GT = U;
-
-save('syntheticHSI5149Stretched', 'U_GT', "A_GT", "X", "Y", "GT", "M", 'N', 'n', 'D')
+clear A A_GT exemplars HDPixels HQPixels i idx1 idx2 j k match nExemplars nHDPixels nHQPixels nremainingPts pHDPixels pHQPixels temp U Xk remainingPts U_GT nk
+% save('syntheticHSI5149Stretched', 'U_GT', "A_GT", "X", "Y", "GT", "M", 'N', 'n', 'D')
 
 
 
