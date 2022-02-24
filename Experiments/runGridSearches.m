@@ -119,7 +119,7 @@ for i = 1:4
     idces = [9]; 
     for j = 1:length(algsTemp)
 %         try
-        load(strcat(algsTemp{j}, ending, 'ManyAVMAX'))
+        load(strcat(algsTemp{j}, ending))
         [OATable(i,idces(j)),k] = max(mean(OAs,3), [],'all');
         [l,k] = ind2sub(size(mean(OAs,3)), k);
         kappaTable(i,idces(j)) = mean(kappas(l,k,:));
@@ -158,13 +158,11 @@ for i = 1:4
     end
 end
 
-table = zeros(9,10);
+table = zeros(9,8);
 table(:,1:2:7) = OATable';
-table(:,2:2:8) = kappaTable';
-table(:,9) = mean(OATable)';
-table(:,10) = mean(kappaTable)';
+table(:,2:2:8) = kappaTable'; 
 
-table = array2table(round(table,3), 'RowNames', algs, 'VariableNames',{'SalinasAOA','SalinasAKappa', 'IndianPinesOA','IndianPinesKappa','JasperRidgeSubsetOA','JasperRidgeSubsetKappa','PaviaSubsetOA', 'PaviaSubsetKappa', 'OA_Avg', 'Kappa_Avg'} );
+table = array2table(round(table,3), 'RowNames', algs, 'VariableNames',{'SalinasAOA','SalinasAKappa', 'IndianPinesOA','IndianPinesKappa','JasperRidgeSubsetOA','JasperRidgeSubsetKappa','PaviaSubsetOA', 'PaviaSubsetKappa'} );
 
 
 save('results', 'table', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
@@ -264,25 +262,16 @@ close all
 
 %% Hyperparameter Robustness
 
-means = zeros(4,1);
-CIs = zeros(4,2);
+datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
+datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
 
-for i = 1:4
+for i =  1:5
 
-    if i == 4
-        load('Pavia_gt')
-        load('Pavia.mat')
-        HSI = pavia(201:400, 430:530,:);
-        [M,N,D] = size(HSI);
-        X = reshape(HSI,M*N,D);
-        X=X./repmat(sqrt(sum(X.*X,1)),size(X,1),1); % Normalize HSI
-        GT = pavia_gt(201:400, 430:530);
-        Y = reshape(GT,M*N,1);
-    else
-        load(datasets{i})
-        GT = reshape(Y,M,N);
-    end
-
+    % ===================== Load and Preprocess Data ======================
+    [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{i});
+    [Idx_NN, Dist_NN] = knnsearch(X,X,'K',1000);
+    Idx_NN(:,1)  = []; 
+    Dist_NN(:,1) = [];  
     ending = strcat('Results', datasets{i});
     load(strcat('DVIS', ending, 'ManyAVMAX'))
 
@@ -317,17 +306,8 @@ for i = 1:4
     a.Label.String = 'OA';
 
     set(gca,'FontSize', 14, 'FontName', 'Times')
-    title(['D-VIS Performance on ' datasetsFormal{i}], 'interpreter','latex', 'FontSize', 17) 
+    title(['D-VIS Performance on ' datasetNames{i}], 'interpreter','latex', 'FontSize', 17) 
     saveas(h, strcat(datasets{i}, 'Robustness'), 'epsc')
-
-    
-    x = reshape(mat, numel(mat),1);
-    means(i) = mean(x);
-    SEM = std(x)/sqrt(length(x));               % Standard Error
-    ts = tinv([0.025  0.975],length(x)-1);      % T-Score
-    CIs(i,:) = means(i) + ts*SEM;                      % Confidence Intervals
-
-
 end
 close all 
 
@@ -383,7 +363,7 @@ title(['Optimal LUND Clustering of Synthetic HSI'], 'interpreter','latex', 'Font
 saveas(h, 'SyntheticLUND', 'epsc')
 
 clear C
-load('DVISResultssyntheticHSI5149StretchedManyAVMAX')
+load('DVISResultssyntheticHSI5149Stretched')
 
 [OAstats(2),k] = max(OAs,[],'all');
 [i,j] = ind2sub(size(OAs),k);
