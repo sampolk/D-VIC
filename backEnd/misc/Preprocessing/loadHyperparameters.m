@@ -7,24 +7,24 @@ if strcmp(AlgName, 'D-VIS')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
     if strcmp(HSIName, 'Synthetic HSI')
-        NN  = 130;
-        pct = 2.36842105263158;
+        NN  = 500;
+        pct = 7.10526315789474;
         K = 5;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 30;
-        pct = 43.4210526315789;
+        pct = 96.3157894736842;
         K = 6;
     elseif strcmp(HSIName, 'Jasper Ridge')
-        NN  = 20;
-        pct = 98.1578947368421;
+        NN  = 10;
+        pct = 96.315789473684200;
         K = 4;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 50;
-        pct = 100;
+        pct = 96.3157894736842;
         K = 16;
     elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 30;
-        pct = 43.4210526315789;
+        NN = 70;
+        pct = 24.4736842105263;
         K = 5;
     end
 
@@ -115,7 +115,7 @@ elseif strcmp(AlgName, 'SC')
     end
 
     Hyperparameters.DiffusionNN = NN;
-    Hyperparameters.NEigs = min(K, 10); 
+    Hyperparameters.NEigs = min(K+1, 10); 
     Hyperparameters.SpatialParams.ImageSize = [M,N];    
 
 elseif strcmp(AlgName, 'KNN-SSC')
@@ -125,9 +125,9 @@ elseif strcmp(AlgName, 'KNN-SSC')
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 10;
     elseif strcmp(HSIName, 'Jasper Ridge')
-        NN  = 500;
+        NN  = 50;
     elseif strcmp(HSIName, 'Indian Pines')
-        NN = 700;
+        NN = 50;
     elseif strcmp(HSIName, 'Pavia Subset')
         NN = 900;
     end

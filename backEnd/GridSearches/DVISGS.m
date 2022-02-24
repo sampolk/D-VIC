@@ -8,11 +8,11 @@ NNs = 10:10:100;
 
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
-prcts{1} =  65:(100-65)/19:100;
+prcts{4} =  65:(100-65)/19:100;
 prcts{2} =  65:(100-65)/19:100;
-prcts{5} =  88:(100-88)/19:100;
-prcts{11} = 15:(60 -15)/19:60;
-prcts{13} = 0: (45 - 0)/19:45;
+prcts{1} =  88:(100-88)/19:100;
+prcts{3} = 15:(60 -15)/19:60;
+prcts{5} = 0: (45 - 0)/19:45;
 
 numReplicates = 10;
  
@@ -20,7 +20,7 @@ numReplicates = 10;
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
 datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
 
-for dataIdx =  2:5
+for dataIdx =  5
 
     prctiles = prcts{dataIdx};
     if dataIdx == 5
@@ -89,9 +89,9 @@ for dataIdx =  2:5
                 
                     [l,j] = ind2sub(size(mean(OAs,3)), k);
                     stdOA = nanstd(squeeze(OAs(l,j,:)));
-                    save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
                 end
-            end
+                save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
+           end
 
             disp(['DVIS: '])
             disp([i/length(NNs), j/length(prctiles), maxOA])
