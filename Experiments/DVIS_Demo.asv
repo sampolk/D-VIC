@@ -257,22 +257,17 @@ for i = 1:numReplicates
     % KDE Computation
     density = KDE_large(Dist_NN, Hyperparameters);
     
-    runtimetemp(i) = toc; % Pre-Clustering runtimes.
+    runtimes(9) = toc;
     
     % Run D-VIS
     [Clusterings, runtimesDVIS] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
     
-    [ OAtemp(i), kappatemp(i), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAs(9), kappas(9), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
     
     runtimetemp(i) = runtimetemp(i)+runtimesDVIS(tIdx);
     Cstemp(:,i) = Clusterings.Labels(:,tIdx);
 end
 
-OAs(9) = mean(OAtemp);
-kappas(9) = mean(kappatemp);
-runtimes(9) = mean(runtimetemp);
-[~,i] = min(abs(OAtemp-OAs(9))); % clustering producing the closest OA to the mean performance
-Cs(:,9) = Cstemp(:,i);
 
 %% Visualizations
 

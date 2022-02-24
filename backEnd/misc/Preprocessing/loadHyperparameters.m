@@ -52,18 +52,18 @@ elseif strcmp(AlgName, 'LUND')
         K = 5;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 40;
-        pct = 15;
+        pct = 5;
         K = 6;
     elseif strcmp(HSIName, 'Jasper Ridge')
-        NN  = 20;
-        pct = 25;
+        NN  = 40;
+        pct = 75;
         K = 4;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 40;
         pct = 65;
         K = 16;
     elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 10;
+        NN = 60;
         pct = 5;
         K = 5;
     end
@@ -85,13 +85,13 @@ elseif strcmp(AlgName, 'SymNMF')
     if strcmp(HSIName, 'Synthetic HSI')
         error('This algorithm is not supported for Synthetic Dataset')
     elseif strcmp(HSIName, 'Salinas A')
-        NN  = 500;
+        NN  = 400;
     elseif strcmp(HSIName, 'Jasper Ridge')
-        NN  = 600;
+        NN  = 130;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 600;
     elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 500;
+        NN = 600;
     end
 
     Hyperparameters.DiffusionNN = NN;
@@ -101,16 +101,16 @@ elseif strcmp(AlgName, 'SC')
     if strcmp(HSIName, 'Synthetic HSI')
         error('This algorithm is not supported for Synthetic Dataset')
     elseif strcmp(HSIName, 'Salinas A')
-        NN  = 20;
+        NN  = 50;
         K = 6;
     elseif strcmp(HSIName, 'Jasper Ridge')
-        NN  = 20;
+        NN  = 10;
         K = 4;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 100;
         K = 16;
     elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 20;
+        NN = 10;
         K = 5;
     end
 
