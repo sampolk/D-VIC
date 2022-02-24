@@ -4,8 +4,8 @@ This toolbox allows the implementation of the following diffusion-based clusteri
 
 - Learning by Unsupervised Nonlinear Diffusion (LUND)
 - Multiscale Learning by Unsupervised Nonlinear Diffusion (M-LUND)
-- Spatially Regularized Diffusion Learning (SRDL)
-- Multiscale Spatially Regularized Diffusion Learning (M-SRDL)
+<!-- - Spatially Regularized Diffusion Learning (SRDL) -->
+<!-- - Multiscale Spatially Regularized Diffusion Learning (M-SRDL) -->
 - Diffusion and VCA-Assisted Image Segmentation (D-VIS)
 - Active Diffusion and VCA-Assisted Image Segmentation (ADVIS)
 
