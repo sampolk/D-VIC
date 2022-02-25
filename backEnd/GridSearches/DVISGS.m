@@ -14,7 +14,7 @@ prcts{1} =  88:(100-88)/19:100;
 prcts{3} = 15:(60 -15)/19:60;
 prcts{5} = 0: (45 - 0)/19:45;
 
-numReplicates = 10;
+numReplicates = 5;
  
 %% Grid searches
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
@@ -38,66 +38,63 @@ for dataIdx =  5
     % ============================== DVIS ==============================
  
     % Preallocate memory
-    OAs     = NaN*zeros(length(NNs), length(prctiles));
-    kappas  = NaN*zeros(length(NNs), length(prctiles));
-    Cs      = zeros(M*N,length(NNs), length(prctiles));
+    OAs     = NaN*zeros(length(NNs), length(prctiles), numReplicates);
+    kappas  = NaN*zeros(length(NNs), length(prctiles), numReplicates);
+    Cs      = zeros(M*N,length(NNs), length(prctiles), numReplicates);
 
     delete(gcp('nocreate'))
     poolObj = parpool;
-    pixelPurity = zeros(M*N,1);
-    for k = 1:numReplicates 
-
-        if dataIdx ==5
-            Hyperparameters.EndmemberParams.K = K; % compute hysime to get best estimate for number of endmembers
-        else
-            Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
-        end
-        Hyperparameters.EndmemberParams.Algorithm = 'ManyAVMAX';
-        Hyperparameters.EndmemberParams.NumReplicates = 100;
-        
-        [purityTemp, ~, ~] = compute_purity(X,Hyperparameters);
-        pixelPurity = pixelPurity + purityTemp/numReplicates;
-    end
 
     currentPerf = 0;
     % Run Grid Searches
     for i = 1:length(NNs)
         for j = 1:length(prctiles)
+    
+            Hyperparameters.DiffusionNN = NNs(i);
+            Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
+            Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
+
+            % Graph decomposition
+            G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+            
+            % KDE Computation
+            density = KDE_large(Dist_NN, Hyperparameters);
 
             if poolObj.NumWorkers<6
                 delete(gcp('nocreate'));
                 poolObj = parpool;
             end
-
-            Hyperparameters.DiffusionNN = NNs(i);
-            Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
-            Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
-
-            density = KDE_large(Dist_NN, Hyperparameters);
-            [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
-
-            if G.EigenVals(2)<1
-                Clusterings = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
-            
-                [ OAs(i,j), kappas(i,j), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', datasets{dataIdx}));
-                Cs(:,i,j) = Clusterings.Labels(:,tIdx);
-                
-                currentPerf = OAs(i,j);
-                [maxOA, k] = max(OAs,[],'all');
     
-                if currentPerf >= maxOA
-                
-                    [l,j] = ind2sub(size(mean(OAs,3)), k);
-                    stdOA = nanstd(squeeze(OAs(l,j,:)));
-                end
-                save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
-           end
+            if dataIdx ==5
+                Hyperparameters.EndmemberParams.K = K; % compute hysime to get best estimate for number of endmembers
+            else
+                Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
+            end 
 
-            disp(['DVIS: '])
-            disp([i/length(NNs), j/length(prctiles), maxOA])
+            parfor k = 1:numReplicates 
+        
+                % Spectral Unmixing Step
+                pixelPurity = compute_purity(X,Hyperparameters);
+    
+                if G.EigenVals(2)<1
+
+                    [Clusterings, ~] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+                    [ OAs(i,j, k), kappas(i,j, k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', datasets{dataIdx}));
+                    Cs(:,i,j, k) = Clusterings.Labels(:,tIdx);
+                     
+               end
+    
+                disp(['DVIS: '])
+                disp([i/length(NNs), j/length(prctiles), k/numReplicates, maxOA])
+            end
+
+            if mean(squeeze(OAs(i,j,:))) == max(mean(OAs,3), [],'all')
+                maxOA = max(mean(OAs,3), [],'all');
+                stdOA = std(squeeze(OAs(i,j,:)));
+                save(strcat('DVISHP', datasets{dataIdx}), 'maxOA', 'stdOA', 'Hyperparameters')
+            end
+            save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA')
         end
-
     end
-    save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA', 'stdOA')
 
 end

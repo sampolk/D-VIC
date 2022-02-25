@@ -1,4 +1,6 @@
 %% Choose the dataset
+clear
+clc
 
 profile off;
 profile on;
@@ -28,6 +30,8 @@ prompt = 'Enter the number of desired runs for each stochastic algorithm: \n';
 numReplicates = input(prompt);
 if ~(round(numReplicates)-numReplicates == 0)
     error('The number of replicates must be an integer.')
+elseif isempty(numReplicates)
+    numReplicates = 1;
 end
 
 % Determine number of replicates for stochastic algorithms
@@ -273,7 +277,7 @@ kappas(9) = mean(kappatemp);
 runtimes(9) = mean(runtimetemp);
 [~,i] = min(abs(OAtemp-OAs(9))); % clustering producing the closest OA to the mean performance
 Cs(:,9) = Cstemp(:,i);
-
+ 
 %% Visualizations
 
 if visualizeOn

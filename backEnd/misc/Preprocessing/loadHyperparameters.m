@@ -7,8 +7,8 @@ if strcmp(AlgName, 'D-VIS')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
     if strcmp(HSIName, 'Synthetic HSI')
-        NN  = 500;
-        pct = 7.10526315789474;
+        NN  = 10;
+        pct = 37.894736842105260;
         K = 5;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 30;
@@ -16,15 +16,15 @@ if strcmp(AlgName, 'D-VIS')
         K = 6;
     elseif strcmp(HSIName, 'Jasper Ridge')
         NN  = 10;
-        pct = 96.315789473684200;
+        pct = 100;
         K = 4;
     elseif strcmp(HSIName, 'Indian Pines')
-        NN = 50;
-        pct = 96.3157894736842;
+        NN = 40;
+        pct = 76.0526315789474;
         K = 16;
     elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 70;
-        pct = 24.4736842105263;
+        NN = 60;
+        pct = 31.5789473684211;
         K = 5;
     end
 

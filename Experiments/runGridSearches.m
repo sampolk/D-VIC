@@ -14,14 +14,14 @@ GMMPCAGS
 clear
 
 
-kappaTable = zeros(4,9);
-OATable = zeros(4,9);
-Clusterings = cell(4,9);
-hyperparameters = cell(4,9);
+kappaTable = zeros(3,9);
+OATable = zeros(3,9);
+Clusterings = cell(3,9);
+hyperparameters = cell(3,9);
 
-datasets = {'SalinasACorrected','IndianPinesCorrected', 'JasperRidge', 'PaviaCenterSubset2'};
+datasets = {'SalinasACorrected','IndianPinesCorrected', 'JasperRidge'};
 
-for i = 1:4
+for i = 1:3
 
     if i == 4
         load('Pavia_gt')
@@ -158,11 +158,11 @@ for i = 1:4
     end
 end
 
-table = zeros(9,8);
-table(:,1:2:7) = OATable';
-table(:,2:2:8) = kappaTable'; 
+table = zeros(9,6);
+table(:,1:2:5) = OATable';
+table(:,2:2:6) = kappaTable'; 
 
-table = array2table(round(table,3), 'RowNames', algs, 'VariableNames',{'SalinasAOA','SalinasAKappa', 'IndianPinesOA','IndianPinesKappa','JasperRidgeSubsetOA','JasperRidgeSubsetKappa','PaviaSubsetOA', 'PaviaSubsetKappa'} );
+table = array2table(round(table,3), 'RowNames', algs, 'VariableNames',{'SalinasAOA','SalinasAKappa', 'IndianPinesOA','IndianPinesKappa','JasperRidgeSubsetOA','JasperRidgeSubsetKappa'} );
 
 
 save('results', 'table', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
@@ -172,9 +172,9 @@ save('results', 'table', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
 load('results.mat')
 
 algsFormal = {'$K$-Means', '$K$-Means+PCA', 'GMM+PCA', 'H2NMF','SC','SymNMF','KNN-SSC','LUND','D-VIS'};
-datasetsFormal = {'Salinas A', 'Indian Pines', 'Jasper Ridge', 'Pavia Subset'};
+datasetsFormal = {'Salinas A', 'Indian Pines', 'Jasper Ridge'};
 
-for i = 1:4
+for i = 1:3
 
     if i == 4
         load('Pavia_gt')
@@ -262,10 +262,10 @@ close all
 
 %% Hyperparameter Robustness
 
-datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
-datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
+datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
+datasetNames = {'Salinas A',      'Jasper Ridge',   'Indian Pines',           'Synthetic HSI'};
 
-for i =  1:5
+for i =  [1,2,4,5]
 
     % ===================== Load and Preprocess Data ======================
     [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{i});
@@ -273,9 +273,9 @@ for i =  1:5
     Idx_NN(:,1)  = []; 
     Dist_NN(:,1) = [];  
     ending = strcat('Results', datasets{i});
-    load(strcat('DVIS', ending, 'ManyAVMAX'))
+    load(strcat('DVIS', ending))
 
-    mat = mean(OAs,3);
+    mat = mean(OAs,3); 
 
     DistTemp = Dist_NN(Dist_NN>0);
     sigmas = zeros(10,1);
