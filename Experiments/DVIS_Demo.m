@@ -59,9 +59,9 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(1) = mean(OAtemp);
-kappas(1) = mean(kappatemp);
-runtimes(1) = mean(runtimetemp);
+OAs(1) = median(OAtemp);
+kappas(1) = median(kappatemp);
+runtimes(1) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(1)));
 Cs(:,1) = Cstemp(:,i);
 
@@ -82,9 +82,9 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(2) = mean(OAtemp);
-kappas(2) = mean(kappatemp);
-runtimes(2) = mean(runtimetemp);
+OAs(2) = median(OAtemp);
+kappas(2) = median(kappatemp);
+runtimes(2) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(2)));
 Cs(:,2) = Cstemp(:,i);
 
@@ -102,9 +102,9 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(3) = mean(OAtemp);
-kappas(3) = mean(kappatemp);
-runtimes(3) = mean(runtimetemp);
+OAs(3) = median(OAtemp);
+kappas(3) = median(kappatemp);
+runtimes(3) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(3)));
 Cs(:,3) = Cstemp(:,i);
 
@@ -141,9 +141,9 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(5) = mean(OAtemp);
-kappas(5) = mean(kappatemp);
-runtimes(5) = mean(runtimetemp);
+OAs(5) = median(OAtemp);
+kappas(5) = median(kappatemp);
+runtimes(5) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(5)));
 Cs(:,5) = Cstemp(:,i);
 
@@ -171,9 +171,9 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(6) = mean(OAtemp);
-kappas(6) = mean(kappatemp);
-runtimes(6) = mean(runtimetemp);
+OAs(6) = median(OAtemp);
+kappas(6) = median(kappatemp);
+runtimes(6) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(6)));
 Cs(:,6) = Cstemp(:,i);
 
@@ -272,9 +272,9 @@ for i = 1:numReplicates
     Cstemp(:,i) = Clusterings.Labels(:,tIdx);
 end
 
-OAs(9) = mean(OAtemp);
-kappas(9) = mean(kappatemp);
-runtimes(9) = mean(runtimetemp);
+OAs(9) = median(OAtemp);
+kappas(9) = median(kappatemp);
+runtimes(9) = median(runtimetemp);
 [~,i] = min(abs(OAtemp-OAs(9))); % clustering producing the closest OA to the mean performance
 Cs(:,9) = Cstemp(:,i);
  
