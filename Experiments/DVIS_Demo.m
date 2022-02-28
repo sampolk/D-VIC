@@ -4,8 +4,8 @@ clc
 
 profile off;
 profile on;
-prompt = 'Which dataset? \n 1) Salinas A \n 2) Jasper Ridge \n 3) Pavia Subset \n 4) Indian Pines \n';
-datasetNames = {'Salinas A', 'Jasper Ridge',  'Pavia Subset', 'Indian Pines'};
+prompt = 'Which dataset? \n 1) Salinas A \n 2) Jasper Ridge \n 3) Indian Pines \n';
+datasetNames = {'Salinas A', 'Jasper Ridge', 'Indian Pines'};
 dataSelectedName = datasetNames{input(prompt)};
 
 % Load selected dataset
@@ -238,46 +238,53 @@ Cs(:,8) = Clusterings.Labels(:,tIdx);
 Hyperparameters = hyperparameters{9};
 NN = max(Hyperparameters.DiffusionNN,Hyperparameters.DensityNN);
 
-OAtemp = zeros(numReplicates,1);
-kappatemp = zeros(numReplicates,1);
-runtimetemp = zeros(numReplicates,1);
-Cstemp = zeros(n,numReplicates);
+OAtemp = NaN*zeros(numReplicates,1);
+kappatemp = NaN*zeros(numReplicates,1);
+runtimetemp = NaN*zeros(numReplicates,1);
+Cstemp = NaN*zeros(n,numReplicates);
 
-for i = 1:numReplicates
+for k = 1:numReplicates 
+
     tic
     
     % Nearest neighbor search
     [Idx_NN, Dist_NN] = knnsearch(X,X,'K', NN+1);
     Idx_NN(:,1)  = []; 
     Dist_NN(:,1) = [];
-    
-    % Spectral Unmixing Step
-    Hyperparameters.EndmemberParams.K = hysime(X'); % implement hysime to get best estimate for number of endmembers 
-    pixelPurity = compute_purity(X,Hyperparameters);
-    
+
     % Graph decomposition
     G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
     
     % KDE Computation
     density = KDE_large(Dist_NN, Hyperparameters);
-    
-    runtimetemp(i) = toc; % Pre-Clustering runtimes.
-    
-    % Run D-VIS
-    [Clusterings, runtimesDVIS] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
-    
-    [ OAtemp(i), kappatemp(i), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
-    
-    runtimetemp(i) = runtimetemp(i)+runtimesDVIS(tIdx);
-    Cstemp(:,i) = Clusterings.Labels(:,tIdx);
-end
 
-OAs(9) = median(OAtemp);
-kappas(9) = median(kappatemp);
-runtimes(9) = median(runtimetemp);
+    % Spectral Unmixing Step
+    Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
+    pixelPurity = compute_purity(X,Hyperparameters);
+
+    runtimetemp(k) =  toc;
+
+    if G.EigenVals(2)<1 % Only use graphs with good spectral decompositions
+
+        [Clusterings, DVISruntimes] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+        [ OAtemp(k), kappatemp(k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
+        Cstemp(:,k) = Clusterings.Labels(:,tIdx);
+        runtimetemp(k) = runtimetemp(k) + DVISruntimes(tIdx);
+    else
+        Cstemp(:,k) = NaN;
+        OAtemp(k) = NaN;
+        kappatemp(k) = NaN;
+        runtimetemp(k) = NaN;
+    end
+end
+OAs(9) = nanmedian(OAtemp);
+kappas(9) = nanmedian(kappatemp);
+runtimes(9) = nanmedian(runtimetemp);
 [~,i] = min(abs(OAtemp-OAs(9))); % clustering producing the closest OA to the mean performance
 Cs(:,9) = Cstemp(:,i);
- 
+
+%% 
+'done'
 %% Visualizations
 
 if visualizeOn

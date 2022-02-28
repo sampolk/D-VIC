@@ -9,18 +9,18 @@ NNs = 10:10:100;
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 prcts{4} =  65:(100-65)/19:100;
-prcts{2} =  65:(100-65)/19:100;
+prcts{2} =  65:(100-65)/38:100;
 prcts{1} =  88:(100-88)/19:100;
 prcts{3} = 15:(60 -15)/19:60;
 prcts{5} = 0: (45 - 0)/19:45;
 
-numReplicates = 5;
+numReplicates = 10;
  
 %% Grid searches
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
 datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
 
-for dataIdx =  5
+for dataIdx =  2
 
     prctiles = prcts{dataIdx};
     if dataIdx == 5
@@ -38,6 +38,7 @@ for dataIdx =  5
     % ============================== DVIS ==============================
  
     % Preallocate memory
+    maxOA = 0;
     OAs     = NaN*zeros(length(NNs), length(prctiles), numReplicates);
     kappas  = NaN*zeros(length(NNs), length(prctiles), numReplicates);
     Cs      = zeros(M*N,length(NNs), length(prctiles), numReplicates);
@@ -54,12 +55,6 @@ for dataIdx =  5
             Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
             Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
 
-            % Graph decomposition
-            G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
-            
-            % KDE Computation
-            density = KDE_large(Dist_NN, Hyperparameters);
-
             if poolObj.NumWorkers<6
                 delete(gcp('nocreate'));
                 poolObj = parpool;
@@ -71,7 +66,13 @@ for dataIdx =  5
                 Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
             end 
 
-            parfor k = 1:numReplicates 
+            for k = 1:numReplicates 
+
+                % Graph decomposition
+                G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+                
+                % KDE Computation
+                density = KDE_large(Dist_NN, Hyperparameters);
         
                 % Spectral Unmixing Step
                 pixelPurity = compute_purity(X,Hyperparameters);
@@ -79,7 +80,7 @@ for dataIdx =  5
                 if G.EigenVals(2)<1
 
                     [Clusterings, ~] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
-                    [ OAs(i,j, k), kappas(i,j, k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', datasets{dataIdx}));
+                    [ OAs(i,j, k), kappas(i,j, k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('JasperRidge', datasets{dataIdx}));
                     Cs(:,i,j, k) = Clusterings.Labels(:,tIdx);
                      
                end
