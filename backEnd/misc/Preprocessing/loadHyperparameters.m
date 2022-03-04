@@ -16,7 +16,7 @@ if strcmp(AlgName, 'D-VIS')
         K = 6;
     elseif strcmp(HSIName, 'Jasper Ridge')
         NN  = 20;
-        pct = 81.578947368421050;
+        pct = 92.758620689655170;
         K = 4;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 40;
