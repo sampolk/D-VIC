@@ -9,18 +9,18 @@ NNs = 10:10:100;
 
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 prcts{4} =  65:(100-65)/19:100;
-prcts{2} =  65:(100-65)/38:100;
-prcts{1} =  88:(100-88)/19:100;
+prcts{2} =  65:(100-65)/29:100;
+prcts{1} =  88:(100-88)/39:100;
 prcts{3} = 15:(60 -15)/19:60;
-prcts{5} = 0: (45 - 0)/19:45;
+prcts{5} = 85:(100-85)/19:100;
 
-numReplicates = 10;
+numReplicates = 50;
  
 %% Grid searches
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
 datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
 
-for dataIdx =  2
+for dataIdx =  [5]
 
     prctiles = prcts{dataIdx};
     if dataIdx == 5
@@ -48,8 +48,8 @@ for dataIdx =  2
 
     currentPerf = 0;
     % Run Grid Searches
-    for i = 1:length(NNs)
-        for j = 1:length(prctiles)
+    for i = 9:13
+        for j = 1:length(prctiles)-1
     
             Hyperparameters.DiffusionNN = NNs(i);
             Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
@@ -66,7 +66,7 @@ for dataIdx =  2
                 Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
             end 
 
-            for k = 1:numReplicates 
+            parfor k = 1:numReplicates 
 
                 % Graph decomposition
                 G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
@@ -88,12 +88,8 @@ for dataIdx =  2
                 disp(['DVIS: '])
                 disp([i/length(NNs), j/length(prctiles), k/numReplicates, maxOA])
             end
-
-            if mean(squeeze(OAs(i,j,:))) == max(mean(OAs,3), [],'all')
-                maxOA = max(mean(OAs,3), [],'all');
-                stdOA = std(squeeze(OAs(i,j,:)));
-                save(strcat('DVISHP', datasets{dataIdx}), 'maxOA', 'stdOA', 'Hyperparameters')
-            end
+            maxOA = max(mean(OAs,3), [],'all');
+            
             save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA')
         end
     end

@@ -265,7 +265,7 @@ close all
 datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
 datasetNames = {'Salinas A',      'Jasper Ridge',   'Indian Pines',           'Synthetic HSI'};
 
-for i =  [1,2,4,5]
+for i =  [3]
 
     % ===================== Load and Preprocess Data ======================
     [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{i});
@@ -286,27 +286,27 @@ for i =  [1,2,4,5]
     set(groot,'defaultAxesTickLabelInterpreter','latex');  % Enforces latex x-tick labels
     h = figure;
 
-    imagesc(mat)
-    xticks(2:2:20)
+    imagesc(mat')
+    yticks(2:2:20)
     exponents = floor(log10(sigmas));
     val = sigmas()./(10.^exponents)    ;
     labels = cell(10,1);
     for k = 1:10
-        labels{k} = strcat('$',num2str(val(k), 2) ,'\times 10^{' , num2str(exponents(k)), '}$');
+        labels{k} = strcat('$',num2str(val(k), 3) ,'\times 10^{' , num2str(exponents(k)), '}$');
     end    
-    xticklabels(labels)
+    yticklabels(labels)
     
-    xlabel('$\sigma_0$', 'interpreter', 'latex')
-    ylabel('$N$', 'interpreter', 'latex')
-    yticks(2:2:10)
-    yticklabels(NNs(2:2:10))
+    ylabel('$\sigma_0$', 'interpreter', 'latex')
+    xlabel('$N$', 'interpreter', 'latex')
+    xticks(2:2:10)
+    xticklabels(NNs(2:2:10))
     axis tight equal
 
     a = colorbar;
     a.Label.String = 'OA';
 
     set(gca,'FontSize', 14, 'FontName', 'Times')
-    title(['D-VIS Performance on ' datasetNames{i}], 'interpreter','latex', 'FontSize', 17) 
+    title([datasetNames{i}], 'interpreter','latex', 'FontSize', 17) 
     saveas(h, strcat(datasets{i}, 'Robustness'), 'epsc')
 end
 close all 

@@ -12,13 +12,13 @@ dataSelectedName = datasetNames{input(prompt)};
 [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(dataSelectedName);
 
 % Load all optimal hyperparameter sets
-algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'H2NMF', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIS'};
-OAs = zeros(1,9);
-kappas = zeros(1,9); 
-runtimes = zeros(1,9);
-hyperparameters = cell(1,9);
-Cs = zeros(n,9);
-for i = 1:9
+algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIS'};
+OAs = zeros(1,8);
+kappas = zeros(1,8); 
+runtimes = zeros(1,8);
+hyperparameters = cell(1,8);
+Cs = zeros(n,8);
+for i = 1:8
     hyperparameters{i} = loadHyperparameters(HSI, dataSelectedName, algNames{i});
 end
 disp('Dataset loaded.')
@@ -108,16 +108,9 @@ runtimes(3) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(3)));
 Cs(:,3) = Cstemp(:,i);
 
-%% H2NMF
-
-tic
-Cs(:,4) = hierclust2nmf(X'-min(X,[],'all'),K);
-runtimes(4) = toc;
-[ OAs(4), kappas(4)] = calcAccuracy(Y, Cs(:,4), ~strcmp('Jasper Ridge', dataSelectedName));
-
 %% SC
 
-NN = hyperparameters{5}.DiffusionNN;
+NN = hyperparameters{4}.DiffusionNN;
 
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
@@ -132,7 +125,7 @@ for i = 1:numReplicates
     Idx_NN(:,1)  = []; 
 
     % Graph decomposition
-    G = extract_graph_large(X, hyperparameters{5}, Idx_NN, Dist_NN);
+    G = extract_graph_large(X, hyperparameters{4}, Idx_NN, Dist_NN);
 
     % Spectral Clustering
     Cstemp(:,i) = SpectralClustering(G,K);
@@ -141,15 +134,15 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(5) = median(OAtemp);
-kappas(5) = median(kappatemp);
-runtimes(5) = median(runtimetemp);
-[~,i] = min(abs(OAtemp - OAs(5)));
-Cs(:,5) = Cstemp(:,i);
+OAs(4) = median(OAtemp);
+kappas(4) = median(kappatemp);
+runtimes(4) = median(runtimetemp);
+[~,i] = min(abs(OAtemp - OAs(4)));
+Cs(:,4) = Cstemp(:,i);
 
 %% SymNMF
 
-NN = hyperparameters{6}.DiffusionNN;
+NN = hyperparameters{5}.DiffusionNN;
 options.kk = NN;
 
 OAtemp = zeros(numReplicates,1);
@@ -171,15 +164,15 @@ for i = 1:numReplicates
     [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
-OAs(6) = median(OAtemp);
-kappas(6) = median(kappatemp);
-runtimes(6) = median(runtimetemp);
-[~,i] = min(abs(OAtemp - OAs(6)));
-Cs(:,6) = Cstemp(:,i);
+OAs(5) = median(OAtemp);
+kappas(5) = median(kappatemp);
+runtimes(5) = median(runtimetemp);
+[~,i] = min(abs(OAtemp - OAs(5)));
+Cs(:,5) = Cstemp(:,i);
 
 %% KNN-SSC
 
-NN = hyperparameters{7}.DiffusionNN;
+NN = hyperparameters{6}.DiffusionNN;
 alpha = 10;
 
 tic
@@ -201,14 +194,14 @@ if flag
 end         
 
 EigenVecs_Normalized = real(V(:,1:min(K,10))./vecnorm(V(:,1:min(K,10)),2,2));
-Cs(:,7) = kmeans(EigenVecs_Normalized, K);
+Cs(:,6) = kmeans(EigenVecs_Normalized, K);
 
-runtimes(7) = toc;
-[ OAs(7), kappas(7)] = calcAccuracy(Y, Cs(:,7), ~strcmp('Jasper Ridge', dataSelectedName));
+runtimes(6) = toc;
+[ OAs(6), kappas(6)] = calcAccuracy(Y, Cs(:,6), ~strcmp('Jasper Ridge', dataSelectedName));
 
 %% LUND
 
-NN = max(hyperparameters{8}.DiffusionNN,hyperparameters{8}.DensityNN);
+NN = max(hyperparameters{7}.DiffusionNN,hyperparameters{7}.DensityNN);
 
 tic
 
@@ -218,24 +211,24 @@ Idx_NN(:,1)  = [];
 Dist_NN(:,1) = [];
 
 % Graph decomposition
-G = extract_graph_large(X, hyperparameters{8}, Idx_NN, Dist_NN);
+G = extract_graph_large(X, hyperparameters{7}, Idx_NN, Dist_NN);
 
 % KDE Computation
-density = KDE_large(Dist_NN, hyperparameters{8});
+density = KDE_large(Dist_NN, hyperparameters{7});
 
-runtimes(8) = toc;
+runtimes(7) = toc;
 
 % Run spectral clustering with the KNN-SSC weight matrix
-[Clusterings, runtimesLUND] = MLUND_large(X, hyperparameters{8}, G, density);
+[Clusterings, runtimesLUND] = MLUND_large(X, hyperparameters{7}, G, density);
 
-[ OAs(8), kappas(8), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
+[ OAs(7), kappas(7), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
 
-runtimes(8) = runtimes(8) + runtimesLUND(tIdx);
-Cs(:,8) = Clusterings.Labels(:,tIdx);
+runtimes(7) = runtimes(7) + runtimesLUND(tIdx);
+Cs(:,7) = Clusterings.Labels(:,tIdx);
 
 %% D-VIS
 
-Hyperparameters = hyperparameters{9};
+Hyperparameters = hyperparameters{8};
 NN = max(Hyperparameters.DiffusionNN,Hyperparameters.DensityNN);
 
 OAtemp = NaN*zeros(numReplicates,1);
@@ -277,11 +270,11 @@ for k = 1:numReplicates
         runtimetemp(k) = NaN;
     end
 end
-OAs(9) = nanmedian(OAtemp);
-kappas(9) = nanmedian(kappatemp);
-runtimes(9) = nanmedian(runtimetemp);
-[~,i] = min(abs(OAtemp-OAs(9))); % clustering producing the closest OA to the mean performance
-Cs(:,9) = Cstemp(:,i);
+OAs(8) = nanmedian(OAtemp);
+kappas(8) = nanmedian(kappatemp);
+runtimes(8) = nanmedian(runtimetemp);
+[~,i] = min(abs(OAtemp-OAs(8))); % clustering producing the closest OA to the mean performance
+Cs(:,8) = Cstemp(:,i);
 
 %% 
 'done'
@@ -297,7 +290,7 @@ if visualizeOn
     xticks([])
     yticks([])
     
-    for i = 1:9
+    for i = 1:8
         
         if ~strcmp('Jasper Ridge', dataSelectedName)
             C = zeros(size(Y));
@@ -305,13 +298,7 @@ if visualizeOn
         else
             C = alignClusterings(Y,Cs(:,i));
         end 
-    
-        subplot(2,5,1+i)
-        if ~strcmp('Pavia Subset', dataSelectedName)
-            imagesc(reshape(C, M,N))
-        else
-            imagesc(reshape(C, M,N)')
-        end
+        imagesc(reshape(C, M,N)') 
         title([algNames{i}, ' Clustering of ', dataSelectedName])
         axis equal tight
         xticks([])
