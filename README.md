@@ -1,4 +1,4 @@
-# DVISREpo
+# D-VIC
 
 This toolbox allows the implementation of the following diffusion-based clustering algorithms on synthetic and real datasets included in the repository:
 
@@ -6,17 +6,18 @@ This toolbox allows the implementation of the following diffusion-based clusteri
 - Multiscale Learning by Unsupervised Nonlinear Diffusion (M-LUND)
 <!-- - Spatially Regularized Diffusion Learning (SRDL) -->
 <!-- - Multiscale Spatially Regularized Diffusion Learning (M-SRDL) -->
-- Diffusion and VCA-Assisted Image Segmentation (D-VIS)
+- Diffusion and Volume maximization-based Image Clustering (D-VIC)
 - Active Diffusion and VCA-Assisted Image Segmentation (ADVIS)
 
 This package can be used to generate experiments in the following articles:
 
-1. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Clustering Highly Mixed Hyperspectral Images Using Diffusion and VCA-Assisted Image Segmentation." To Appear.
+1. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." To Appear.
 2. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." To Appear
 
 The following scripts (in the Experiments folder) generate the relevant experiments:
 
 - DVIS_demo.m evaluates the D-VIS clustering algorithm on four benchmark hyperspectral images. This script can be used to replicate experiments that appear in article 1.
+- toyExperiment.m replicates the synthetic data experiments presented in Section 4.B.3 of article 1.  
 - ADVIS_demo.m compares the ADVIS active learning algorithm against the D-VIS clustering algorithm . This script is used for experiments that appear in article 2.
 
 Real hyperspectral image data (Salinas A, which was used in articles 1-4, as well as Indian Pines, Jasper Ridge, and Pavia Centre, which were used in article 1.) can be downloaded at the following links:
