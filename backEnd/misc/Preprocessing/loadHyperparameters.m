@@ -1,15 +1,21 @@
 function Hyperparameters = loadHyperparameters(HSI, HSIName, AlgName)
 
-[M,N,D] = size(HSI);
-X = reshape(HSI,M*N,D);
+if strcmp(HSIName, 'Synthetic Data') % Not an HSI 
+    [n,D] = size(HSI);
+    M=n; N=1;
+    X = HSI;
+else
+    [M,N,D] = size(HSI);
+    X = reshape(HSI,M*N,D);
+end
 
 if strcmp(AlgName, 'D-VIS')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
-    if strcmp(HSIName, 'Synthetic HSI')
-        NN  = 10;
-        pct = 37.894736842105260;
-        K = 5;
+    if strcmp(HSIName, 'Synthetic Data')
+        NN  = 200;
+        pct = 0;
+        K = 3;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 30;
         pct = 96.3157894736842;
@@ -46,10 +52,10 @@ if strcmp(AlgName, 'D-VIS')
 elseif strcmp(AlgName, 'LUND')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
-    if strcmp(HSIName, 'Synthetic HSI')
-        NN  = 50;
+    if strcmp(HSIName, 'Synthetic Data')
+        NN  = 100;
         pct = 5;
-        K = 5;
+        K = 3;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 40;
         pct = 5;
@@ -82,7 +88,7 @@ elseif strcmp(AlgName, 'LUND')
 
 elseif strcmp(AlgName, 'SymNMF')
 
-    if strcmp(HSIName, 'Synthetic HSI')
+    if strcmp(HSIName, 'Synthetic Data')
         error('This algorithm is not supported for Synthetic Dataset')
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 400;
@@ -98,7 +104,7 @@ elseif strcmp(AlgName, 'SymNMF')
 
 elseif strcmp(AlgName, 'SC')
 
-    if strcmp(HSIName, 'Synthetic HSI')
+    if strcmp(HSIName, 'Synthetic Data')
         error('This algorithm is not supported for Synthetic Dataset')
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 50;
@@ -120,7 +126,7 @@ elseif strcmp(AlgName, 'SC')
 
 elseif strcmp(AlgName, 'KNN-SSC')
 
-    if strcmp(HSIName, 'Synthetic HSI')
+    if strcmp(HSIName, 'Synthetic Data')
         error('This algorithm is not supported for Synthetic Dataset')
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 10;

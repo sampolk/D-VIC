@@ -10,11 +10,11 @@ NNs = 10:10:100;
 % Set the percentiles of nearest neighbor distances to be used in KDE construction. 
 prcts{4} =  65:(100-65)/19:100;
 prcts{2} =  65:(100-65)/29:100;
-prcts{1} =  88:(100-88)/39:100;
+prcts{1} =  88:(100-88)/19:100;
 prcts{3} = 15:(60 -15)/19:60;
-prcts{5} = 85:(100-85)/19:100;
+prcts{5} = 5:10:95;
 
-numReplicates = 50;
+numReplicates = 20;
  
 %% Grid searches
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
@@ -27,6 +27,7 @@ for dataIdx =  [5]
         % Set number of nearest neighbors to use in graph and KDE construction.
         NNs = [unique(round(10.^(1:0.1:2.7),-1)), 600, 700, 800, 900];
     end
+    
 
     % ===================== Load and Preprocess Data ======================
     [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{dataIdx});
@@ -48,8 +49,8 @@ for dataIdx =  [5]
 
     currentPerf = 0;
     % Run Grid Searches
-    for i = 9:13
-        for j = 1:length(prctiles)-1
+    for i = 1:length(NNs)
+        for j = 1:length(prctiles)
     
             Hyperparameters.DiffusionNN = NNs(i);
             Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000

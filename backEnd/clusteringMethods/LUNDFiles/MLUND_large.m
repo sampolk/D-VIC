@@ -102,4 +102,5 @@ else
     Clusterings.TimeSamples = NaN;
     Clusterings.Density = p;
     Clusterings.Dt = NaN*ones(n,1);
+    runtimes = NaN;
 end
