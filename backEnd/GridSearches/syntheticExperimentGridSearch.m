@@ -12,14 +12,15 @@ Dist_NN(:,1) = [];
 
  
 %% Parameters
+load('syntheticData.mat')
 
 % Load default hyperparameters
-Hyperparameters = loadHyperparameters(HSI, 'Synthetic HSI', 'D-VIS'); 
+Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'D-VIS'); 
 Hyperparameters.SpatialParams.ImageSize = [n,1];
 
 % Parameter grid to be used
-NNs = 200;
-prctiles = 0:5:100;
+NNs = 140:10:400;
+prctiles = 0.5:20;
 numReplicates = 8;
 
 %% Grid searches
@@ -30,11 +31,11 @@ numReplicates = 8;
 maxOA = 0;
 OAsLUND     = NaN*zeros(length(NNs), length(prctiles));
 kappasLUND  = NaN*zeros(length(NNs), length(prctiles));
-CsLUND      = zeros(M*N,length(NNs), length(prctiles));
+CsLUND      = zeros(n,length(NNs), length(prctiles));
 
 OAsDVIC     = NaN*zeros(length(NNs), length(prctiles), numReplicates);
 kappasDVIC  = NaN*zeros(length(NNs), length(prctiles), numReplicates);
-CsDVIC      = zeros(M*N,length(NNs), length(prctiles), numReplicates);
+CsDVIC      = zeros(n,length(NNs), length(prctiles), numReplicates);
 
 delete(gcp('nocreate'))
 poolObj = parpool;
@@ -70,22 +71,24 @@ for i = 1:length(NNs)
                 poolObj = parpool;
             end
 
-            for k = 1:numReplicates
+            % Spectral Unmixing Step
+            endmembers = zeros([size(hyperAvmax([X,X,X]', K, 0)), Hyperparameters.EndmemberParams.NumReplicates]);
+            volumes = zeros(Hyperparameters.EndmemberParams.NumReplicates,1);
+            for l = 1:Hyperparameters.EndmemberParams.NumReplicates
+                [endmembers(:,:,l), volumes(l)] = hyperAvmax([X,X,X]', K, 0);
+            end
+            [~,l] = max(volumes);
+            endmembers = endmembers(:,:,l);
+        
+            abundances = reshape(hyperNnls(X', endmembers(1:2,:))', M, N, K);
+            abundances = reshape(abundances,M*N,K);
+            pixelPurity = max(abundances,[],2);
+            pixelPurity(isnan(pixelPurity)) = 0; 
 
 
-                % Spectral Unmixing Step
-                endmembers = zeros([size(hyperAvmax([X,X,X]', K, 0)), Hyperparameters.EndmemberParams.NumReplicates]);
-                volumes = zeros(Hyperparameters.EndmemberParams.NumReplicates,1);
-                for l = 1:Hyperparameters.EndmemberParams.NumReplicates
-                    [endmembers(:,:,l), volumes(l)] = hyperAvmax([X,X,X]', K, 0);
-                end
-                [~,l] = max(volumes);
-                endmembers = endmembers(:,:,l);
-            
-                abundances = reshape(hyperNnls(X', endmembers(1:2,:))', M, N, K);
-                abundances = reshape(abundances,M*N,K);
-                pixelPurity = max(abundances,[],2);
-                pixelPurity(isnan(pixelPurity)) = 0; 
+            parfor k = 1:numReplicates
+
+
 
                 % Run D-VIS
                 [Clusterings, ~] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
@@ -105,7 +108,7 @@ for i = 1:length(NNs)
 
     end
 
-    save(strcat('SyntheticResults2'),  'OAsLUND', 'kappasLUND', 'CsLUND',  'OAsDVIC', 'kappasDVIC', 'CsDVIC', 'NNs', 'prctiles', 'numReplicates', 'maxOA')
+    save(strcat('SyntheticResults'),  'OAsLUND', 'kappasLUND', 'CsLUND',  'OAsDVIC', 'kappasDVIC', 'CsDVIC', 'NNs', 'prctiles', 'numReplicates', 'maxOA')
 end
 
 %% Visualization of best results
@@ -147,7 +150,7 @@ close all
 h = figure;
 scatter(X(:,1), X(:,2), 36, Y, 'filled')
 set(gca,'FontSize', 16, 'FontName', 'Times')
-title('Dataset $X$, Colored By Ground Truth Label', 'interpreter', 'latex')
+title('Synthetic Dataset, Colored By Ground Truth Label', 'interpreter', 'latex')
 axis equal tight
 box on 
 xlabel('$x_1$', 'interpreter', 'latex')
@@ -175,7 +178,7 @@ pixelPurity(isnan(pixelPurity)) = 0;
 
 scatter(X(:,1), X(:,2), 36, pixelPurity, 'filled')
 set(gca,'FontSize', 16, 'FontName', 'Times')
-title('Dataset $X$, Colored by Pixel Purity', 'interpreter', 'latex')
+title('Synthetic Dataset, Colored by Purity', 'interpreter', 'latex')
 axis equal tight
 box on 
 xlabel('$x_1$', 'interpreter', 'latex')

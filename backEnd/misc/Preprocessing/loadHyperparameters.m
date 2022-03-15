@@ -13,8 +13,8 @@ if strcmp(AlgName, 'D-VIS')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
     if strcmp(HSIName, 'Synthetic Data')
-        NN  = 200;
-        pct = 0;
+        NN  = 320;
+        pct = 10.5;
         K = 3;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 30;
@@ -53,8 +53,8 @@ elseif strcmp(AlgName, 'LUND')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
     if strcmp(HSIName, 'Synthetic Data')
-        NN  = 100;
-        pct = 5;
+        NN  = 140;
+        pct = 0.5;
         K = 3;
     elseif strcmp(HSIName, 'Salinas A')
         NN  = 40;

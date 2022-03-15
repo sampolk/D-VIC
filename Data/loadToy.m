@@ -44,9 +44,9 @@ for i = 1:n
     while ~inpolygon(X(i,1),X(i,2), endmembers(:,1), endmembers(:,2))
         k = min(ceil(i/clusterSize), 4); % current cluster index
         if k<4
-            X(i,:) = 0.125*randn(1,2)+ gaussianCenters(k,:);
+            X(i,:) = 0.175*randn(1,2)+ gaussianCenters(k,:);
         else
-            X(i,:) = 0.005*randn(1,2)+ gaussianCenters(k,:);
+            X(i,:) = 0.0175*randn(1,2)+ gaussianCenters(k,:);
         end
         [~,Y(i)] = min(pdist2(endmembers, X(i,:))); % Assign index of closest of closest endmember 
     end
