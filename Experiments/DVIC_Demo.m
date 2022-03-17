@@ -310,13 +310,14 @@ if visualizeOn
     
     for i = 1:8
         
+        subplot(2,5,i+1)
         if ~strcmp('Jasper Ridge', dataSelectedName)
             C = zeros(size(Y));
             C(Y>1) = alignClusterings(Y(Y>1)-1,Cs(Y>1,i));
         else
             C = alignClusterings(Y,Cs(:,i));
         end 
-        imagesc(reshape(C, M,N)') 
+        imagesc(reshape(C, M,N)) 
         title([algNames{i}, ' Clustering of ', dataSelectedName])
         axis equal tight
         xticks([])
