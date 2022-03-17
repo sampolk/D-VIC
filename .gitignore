@@ -222,3 +222,4 @@ GridSearches/Results/byAlgorithm/DBSCAN/DBSCANClusteringPaviaU.mat
 GridSearches/Results/byAlgorithm/DBSCAN/DBSCANClusteringJasperRidge.mat
 GridSearches/Results/byAlgorithm/DBSCAN/DBSCANClusteringIndianPinesCorrected.mat
 *.mat
+*.eps
