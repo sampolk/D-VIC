@@ -1,4 +1,4 @@
-function [ OA, kappa, tIdx] = calcAccuracy(Y, C, ignore1flag)
+function [ OA, kappa, tIdx, OATemp, kappaTemp] = calcAccuracy(Y, C, ignore1flag)
 
 if isstruct(C)
 

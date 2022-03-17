@@ -21,7 +21,7 @@ hyperparameters = cell(3,9);
 
 datasets = {'SalinasACorrected','IndianPinesCorrected', 'JasperRidge'};
 
-for i = 1:3
+for i = 1
 
     if i == 4
         load('Pavia_gt')
@@ -56,7 +56,7 @@ for i = 1:3
 %         try
         load(strcat(algsTemp{j}, ending))
         [OATable(i,idces(j)),k] = max(OAs);
-        kappaTable(i,idces(j)) = mean(kappas(k));
+        kappaTable(i,idces(j)) = median(kappas(k));
         algs{idces(j)} = algsTemp{j};
         Clusterings{i,idces(j)} = Cs(:,k);
         hyperparameters{i,idces(j)} = array2table([10, NNs(k)], 'VariableNames', {'Alpha','NN'});
@@ -70,8 +70,8 @@ for i = 1:3
     for j = 1:length(algsTemp)
 %         try
         load(strcat(algsTemp{j}, ending))
-        [OATable(i,idces(j)),k] = max(mean(OAs,2));
-        kappaTable(i,idces(j)) = mean(kappas(k,:));
+        [OATable(i,idces(j)),k] = max(median(OAs,2));
+        kappaTable(i,idces(j)) = median(kappas(k,:));
         algs{idces(j)} = algsTemp{j};
         [~,l] = min(abs(OATable(i,idces(j))-OAs(k,:)));
         Clusterings{i,idces(j)} = Cs(:,k,l);
@@ -119,10 +119,10 @@ for i = 1:3
     idces = [9]; 
     for j = 1:length(algsTemp)
 %         try
-        load(strcat(algsTemp{j}, ending))
-        [OATable(i,idces(j)),k] = max(mean(OAs,3), [],'all');
-        [l,k] = ind2sub(size(mean(OAs,3)), k);
-        kappaTable(i,idces(j)) = mean(kappas(l,k,:));
+        load(strcat(algsTemp{j}, ending, '50'))
+        [OATable(i,idces(j)),k] = max(median(OAs,3), [],'all');
+        [l,k] = ind2sub(size(median(OAs,3)), k);
+        kappaTable(i,idces(j)) = median(kappas(l,k,:));
         algs{idces(j)} = algsTemp{j};
     
         [~,m] = min(abs(OATable(i,idces(j))-squeeze(OAs(l,k,:))));
@@ -169,12 +169,12 @@ save('results', 'table', 'Clusterings', 'algs', 'datasets', 'hyperparameters')
 
 %% Visualize Clusterings and Ground Truth
 
-load('results.mat')
+% load('results.mat')
 
-algsFormal = {'$K$-Means', '$K$-Means+PCA', 'GMM+PCA', 'H2NMF','SC','SymNMF','KNN-SSC','LUND','D-VIS'};
+algsFormal = {'$K$-Means', '$K$-Means+PCA', 'GMM+PCA', 'H2NMF','SC','SymNMF','KNN-SSC','LUND','D-VIC'};
 datasetsFormal = {'Salinas A', 'Indian Pines', 'Jasper Ridge'};
 
-for i = 1:3
+for i = 1
 
     if i == 4
         load('Pavia_gt')
@@ -223,22 +223,14 @@ for i = 1:3
      
     saveas(h, strcat(datasets{i}, 'PC'), 'epsc')
 
-    for j = setdiff(1:9,[])
+    for j = 3
 
-        U = reshape(alignClusterings(Y,Clusterings{i,j}), M,N);
-        if i < 3
-            if ~(j==10)
-                U(GT == 1) = 0;
-            else
-                U(U==0) = -1;
-                U(GT == 1) = 0;
-            end
-        end
-        if i == 4
+        if i<2
             U = zeros(M*N,1);
             U(Y>1) = alignClusterings(Y(Y>1)-1,Clusterings{i,j}(Y>1));
-            U = reshape(U,M,N);
-            U = U';
+            U = reshape(U,M,N)+1;
+        else 
+            U = reshape(alignClusterings(Y,Clusterings{i,j}), M,N);
         end
 
         h = figure;
@@ -265,7 +257,7 @@ close all
 datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
 datasetNames = {'Salinas A',      'Jasper Ridge',   'Indian Pines',           'Synthetic HSI'};
 
-for i =  [3]
+for i =  2
 
     % ===================== Load and Preprocess Data ======================
     [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{i});
@@ -273,9 +265,10 @@ for i =  [3]
     Idx_NN(:,1)  = []; 
     Dist_NN(:,1) = [];  
     ending = strcat('Results', datasets{i});
-    load(strcat('DVIS', ending))
+    load(strcat('DVIS', ending, '50'))
 
-    mat = mean(OAs,3); 
+    mat = median(OAs,3); 
+    mat = mat(:,11:30);
 
     DistTemp = Dist_NN(Dist_NN>0);
     sigmas = zeros(10,1);
@@ -305,83 +298,9 @@ for i =  [3]
     a = colorbar;
     a.Label.String = 'OA';
 
-    set(gca,'FontSize', 14, 'FontName', 'Times')
-    title([datasetNames{i}], 'interpreter','latex', 'FontSize', 17) 
+    set(gca,'FontSize', 18, 'FontName', 'Times')
+    title([datasetNames{i}], 'interpreter','latex', 'FontSize', 20) 
     saveas(h, strcat(datasets{i}, 'Robustness'), 'epsc')
 end
 close all 
-
-
-
-%% Synthetic data visualization
-
-load('syntheticHSI5149Stretched.mat')
-
-h = figure;
-imagesc(GT)
-xticks([])
-yticks([])
-axis equal tight
-title(['Synthetic HSI Ground Truth'], 'interpreter','latex', 'FontSize', 17) 
- 
-saveas(h, 'SyntheticGT', 'epsc')
-
-h = figure;
-[~,scores] = pca(X);
-imagesc(reshape(scores(:,1), M,N))
-
-
-a = colorbar;
-%     a.Label.String = 'OA (%)';
-xticks([])
-yticks([])
-axis equal tight
-title(['First Principal Component Scores'], 'interpreter','latex', 'FontSize', 17) 
-set(gca,'FontName', 'Times', 'FontSize', 14)
-saveas(h, 'SyntheticPC', 'epsc')
-
-close all 
-
-%%
-
-load('LUNDResultssyntheticHSI5149Stretched')
-
-[OAstats(1),k] = max(OAs,[],'all');
-[i,j] = ind2sub(size(OAs),k);
-C = Cs(:,i,j);
-C(Y == 0 ) = 0;
-C = alignClusterings(Y, C);
-
-
-h = figure;
-imagesc(reshape(C, M,N))
-xticks([])
-yticks([])
-axis equal tight
-title(['Optimal LUND Clustering of Synthetic HSI'], 'interpreter','latex', 'FontSize', 17) 
- 
-saveas(h, 'SyntheticLUND', 'epsc')
-
-clear C
-load('DVISResultssyntheticHSI5149Stretched')
-
-[OAstats(2),k] = max(OAs,[],'all');
-[i,j] = ind2sub(size(OAs),k);
-C = Cs(:,i,j);
-C(Y == 0 ) = 0;
-C = alignClusterings(Y, C);
-
-h = figure;
-imagesc(reshape(C, M,N))
-xticks([])
-yticks([])
-axis equal tight
-title(['Optimal D-VIS Clustering of Synthetic HSI'], 'interpreter','latex', 'FontSize', 17) 
- 
-saveas(h, 'SyntheticDVIS', 'epsc')
-
-close all 
-
-
-disp(OAstats)
 

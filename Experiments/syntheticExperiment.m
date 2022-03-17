@@ -3,8 +3,7 @@
 %% Load Synthetic Dataset
 
 % Load dataset
-% [X,M,N,D,HSI,GT,Y,n, K] = loadToy(1000);
-load('/Users/sampolk/Documents/GitHub/DVISREpo/Data/syntheticData.mat')
+[X,M,N,D,HSI,GT,Y,n, K] = loadToy(1000);
 
 % Nearest neighbor searches
 [Idx_NN, Dist_NN] = knnsearch(X,X,'K',n);
