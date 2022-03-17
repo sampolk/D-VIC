@@ -7,12 +7,12 @@ This toolbox allows the implementation of the following diffusion-based clusteri
 <!-- - Spatially Regularized Diffusion Learning (SRDL) -->
 <!-- - Multiscale Spatially Regularized Diffusion Learning (M-SRDL) -->
 - Diffusion and Volume maximization-based Image Clustering (D-VIC)
-- Active Diffusion and VCA-Assisted Image Segmentation (ADVIS)
+<!-- - Active Diffusion and VCA-Assisted Image Segmentation (ADVIS) -->
 
 This package can be used to generate experiments in the following articles:
 
-1. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." To Appear.
-2. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." To Appear
+- Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." To Appear.
+<!-- 2. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." To Appear -->
 
 The following scripts (in the Experiments folder) generate the relevant experiments:
 
