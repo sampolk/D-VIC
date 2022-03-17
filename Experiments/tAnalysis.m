@@ -32,7 +32,6 @@ dataSelectedName = datasetNames{input(prompt)};
 [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(dataSelectedName);
 
 % Load all optimal hyperparameter sets
-algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIC'};
 Hyperparameters = loadHyperparameters(HSI, dataSelectedName, 'D-VIC');
 
 % Nearest neighbor search
