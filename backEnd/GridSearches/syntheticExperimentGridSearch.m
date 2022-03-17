@@ -1,5 +1,17 @@
-%% Toy Data Experiment
+%{
 
+This script runs a grid search over relevant hyperparameter values for
+Learning by Unsupervised Nonlinear Diffusion (LUND) and Diffusion and 
+Volume maximization-based Clustering (D-VIC) on a synthetic dataset. This 
+script was used in the following article:
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% Load Synthetic Dataset
 
 % Load dataset
@@ -51,7 +63,7 @@ for i = 1:length(NNs)
     Hyperparameters.K_Known = length(unique(Y));
 
     % Graph decomposition
-    G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+    G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
 
     if G.EigenVals(2)<1
 
@@ -59,10 +71,10 @@ for i = 1:length(NNs)
 
             % Compute KDe
             Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
-            density = KDE_large(Dist_NN, Hyperparameters);
+            density = KDE(Dist_NN, Hyperparameters);
 
             % Run M-LUND
-            [Clusterings, ~] = MLUND_large(X, Hyperparameters, G, density);
+            [Clusterings, ~] = MLUND(X, Hyperparameters, G, density);
             [ OAsLUND(i,j), kappasLUND(i,j), tIdx] = calcAccuracy(Y, Clusterings, 0);
             CsLUND(:,i,j) = Clusterings.Labels(:,tIdx);
 
@@ -91,7 +103,7 @@ for i = 1:length(NNs)
 
 
                 % Run D-VIS
-                [Clusterings, ~] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+                [Clusterings, ~] = MLUND(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
                 [ OAsDVIC(i,j,k), kappasDVIC(i,j,k), tIdx] = calcAccuracy(Y, Clusterings, 0);
                 CsDVIC(:,i,j,k) = Clusterings.Labels(:,tIdx);
 
@@ -185,20 +197,4 @@ xlabel('$x_1$', 'interpreter', 'latex')
 xlabel('$x_2$', 'interpreter', 'latex')
 colorbar
 saveas(h, 'SyntheticPurity', 'epsc')
-close all 
-%% Density Visualization
-h = figure;
-Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
-Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
-density = KDE_large(Dist_NN, Hyperparameters);
-
-scatter(X(:,1), X(:,2), 36, log10(density))
-set(gca,'FontSize', 16, 'FontName', 'Times')
-title('Dataset $X$, colored by $\log_{10}(p(x))$', 'interpreter', 'latex')
-axis equal tight
-box on 
-xlabel('$x_1$', 'interpreter', 'latex')
-xlabel('$x_2$', 'interpreter', 'latex')
-colorbar
-saveas(h, 'SyntheticDensity', 'epsc')
-close all 
+close all  

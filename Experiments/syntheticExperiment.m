@@ -1,5 +1,19 @@
-%% 
+%{
 
+This script replicates Figures 3-4 in the following article: 
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+This synthetic, 2-dimensional dataset has two classes of points:
+high-density, low-purity points that are not indicative of latent material
+structure and low-density, high-purity points that are. D-VIC is shown to
+substantially outperform LUND, its purity-agnostic counterpart.
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% Load Synthetic Dataset
 
 % Load dataset
@@ -14,17 +28,17 @@ Dist_NN(:,1) = [];
 
 Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'LUND');
 
-G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
-density = KDE_large(Dist_NN, Hyperparameters);
-[Clusterings, ~] = MLUND_large(X, Hyperparameters, G, density);
+G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
+density = KDE(Dist_NN, Hyperparameters);
+[Clusterings, ~] = MLUND(X, Hyperparameters, G, density);
 [ OALUND, kappaLUND, tIdx] = calcAccuracy(Y, Clusterings, 0);
 CLUND = Clusterings.Labels(:,tIdx);
 
 %% Run D-VIS
 
 Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'D-VIS');
-G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
-density = KDE_large(Dist_NN, Hyperparameters);
+G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
+density = KDE(Dist_NN, Hyperparameters);
 
 % Spectral Unmixing Step
 endmembers = zeros([size(hyperAvmax([X,X,X]', K, 0)), Hyperparameters.EndmemberParams.NumReplicates]);
@@ -41,7 +55,7 @@ pixelPurity = max(abundances,[],2);
 pixelPurity(isnan(pixelPurity)) = 0; 
 
 % Run D-VIS
-[Clusterings, ~] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+[Clusterings, ~] = MLUND(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
 
 [ OADVIC, kappaDVIC, tIdx] = calcAccuracy(Y, Clusterings, 0);
 CDVIC = Clusterings.Labels(:,tIdx);

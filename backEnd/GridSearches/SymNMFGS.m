@@ -1,7 +1,20 @@
-%% SymNMF
-% Extracts performances for SymNMF
+%{
+This script runs a grid search over relevant hyperparameter values for the
+Symmetric Non-Negative Matrix Factorization (SymNMF) on real hyperspectral 
+images. This script was used in the following article:
 
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
 
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+%}
 %% Grid Search Parameters
    
 % Set number of nearest neighbors to use in graph and KDE construction.

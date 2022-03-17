@@ -1,7 +1,20 @@
-%% lund
-% Extracts performances for lund
+%{
+This script runs a grid search over relevant hyperparameter values for the
+Learning by Unsupervised Nonlinear Diffusion (LUND) on real hyperspectral 
+images. This script was used in the following article:
 
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
 
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+%}
 %% Grid Search Parameters
    
 % Set number of nearest neighbors to use in graph and KDE construction.
@@ -41,11 +54,11 @@ for dataIdx =  2:4
             Hyperparameters.DensityNN = NNs(i); % must be ≤ 1000
             Hyperparameters.Sigma0 = prctile(Dist_NN(Dist_NN>0), prctiles(j), 'all');
 
-            [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
-            density = KDE_large(Dist_NN, Hyperparameters);
+            [G,W] = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
+            density = KDE(Dist_NN, Hyperparameters);
 
             if G.EigenVals(2)<1 
-                Clusterings = MLUND_large(X, Hyperparameters, G, density);
+                Clusterings = MLUND(X, Hyperparameters, G, density);
 
                 [ OAs(i,j), kappas(i,j), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', datasets{dataIdx}));
 

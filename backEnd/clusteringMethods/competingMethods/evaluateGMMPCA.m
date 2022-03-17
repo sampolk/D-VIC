@@ -1,4 +1,20 @@
 function C = evaluateGMMPCA(X,K)
+%{
+This function evaluates Gaussian Mixture Model (GMM) Clustering after
+principal component analysis (PCA). 
+
+The number of PCs is initialized as the z such that 99 % of the variation
+in the data is encoding in the low-dimensional embedding. If GMM does not
+converge on this embedding in any of 10 attempts, we increase the number of
+iterations in its optimization and begin reducing the number of PCs
+implemented on. 
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+%}
 
 % We run the same code (at most) 10 times and keep the clustering
 % that is the first to converge. 

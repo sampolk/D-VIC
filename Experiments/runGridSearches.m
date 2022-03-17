@@ -1,23 +1,46 @@
+%{
+
+This script runs the grid searches outlined in Appendix A of the following
+article:
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+The optimal hyperparameters for each algorithm are then used to visualize 
+clusterings in Figures 6-7 and provide performances and runtimes in Tables 
+I and II respectively. D-VIC is shown to substantially outperform related 
+hypserspectral image clustering algorithms on 3 real datasets after 
+hyperparameter optimization. 
+
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% RunGridSearches
 
-% LUNDGS
-% DVISGS
+LUNDGS
+DVISGS
 SCGS
 SymNMFGS
 KMeansGS
 KMeansPCAGS
-H2NMFGS
 GMMPCAGS 
-% KNNSSCGS
+KNNSSCGS
 
 %% Aggregate into a table
 clear
 
 
-kappaTable = zeros(3,9);
-OATable = zeros(3,9);
-Clusterings = cell(3,9);
-hyperparameters = cell(3,9);
+kappaTable = zeros(3,8);
+OATable = zeros(3,8);
+Clusterings = cell(3,8);
+hyperparameters = cell(3,8);
 
 datasets = {'SalinasACorrected','IndianPinesCorrected', 'JasperRidge'};
 
@@ -32,11 +55,11 @@ for i = 1
         load(datasets{i})
     end
 
-    algs = cell(1,9);
+    algs = cell(1,8);
     ending = strcat('Results', datasets{i});
 
     % Algorithms without hyperparameter optimization 
-    algsTemp= {'KMeans', 'KmeansPCA', 'GMM','H2NMF'};
+    algsTemp= {'KMeans', 'KmeansPCA', 'GMM'};
     idces = [1,2,3, 4]; 
     for j = 1:length(algsTemp)
 %         try
@@ -51,7 +74,7 @@ for i = 1
         
 %     % Algorithms with 1 hyperparameter to optimize
     algsTemp= {'KNNSSC'};
-    idces = [7]; 
+    idces = [6]; 
     for j = 1:length(algsTemp)
 %         try
         load(strcat(algsTemp{j}, ending))
@@ -66,7 +89,7 @@ for i = 1
     
     % Algorithms with 1 hyperparameter to optimize, but with averages
     algsTemp= {'SC', 'SymNMF'};
-    idces = [5,6]; 
+    idces = [4,5]; 
     for j = 1:length(algsTemp)
 %         try
         load(strcat(algsTemp{j}, ending))
@@ -85,7 +108,7 @@ for i = 1
     
     % Algorithms with 2 hyperparameters to optimize
     algsTemp= {'LUND'};
-    idces = [8]; 
+    idces = [7]; 
     for j = 1:length(algsTemp)
 %         try
         load(strcat(algsTemp{j}, ending))
@@ -116,7 +139,7 @@ for i = 1
     
     % Algorithms with 2 hyperparameters to optimize, but with averages
     algsTemp= {'DVIS'};
-    idces = [9]; 
+    idces = [8]; 
     for j = 1:length(algsTemp)
 %         try
         load(strcat(algsTemp{j}, ending, '50'))
@@ -158,7 +181,7 @@ for i = 1
     end
 end
 
-table = zeros(9,6);
+table = zeros(8,6);
 table(:,1:2:5) = OATable';
 table(:,2:2:6) = kappaTable'; 
 
@@ -189,8 +212,6 @@ for i = 1
         load(datasets{i})
         GT = reshape(Y,M,N);
     end
-
-
 
     h = figure;
     if i == 4

@@ -9,6 +9,9 @@ function C = knn_SSC( Y, alpha, num_neighbors, Idx_NN)
 %        precalculated nearest neighbor structure, where Idx_NN(i,j) is the
 %        index of the jth nearest neighbor of Y(:,i);
 % output: coefficient matrix
+% 
+% Sam L. Polk (samuel.polk@tufts.edu) edited this code so that the KNN-SSC
+% weight matrix is sparse. 
 
 N = size(Y,2);
 

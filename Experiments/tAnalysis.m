@@ -1,3 +1,23 @@
+%{
+
+This script replicates Figure 9 in the following article: 
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+D-VIC is shown to achieve OA values comparable to the optimal value across
+a broad range of choices of t on each of 3 real hyperspectral datasets. 
+
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% Choose the dataset
 clear
 clc
@@ -53,17 +73,17 @@ OAs = zeros(numReplicates,numClusterings); % Where we will store the OA values p
 for k = 1:numReplicates     
 
     % Graph decomposition
-    G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+    G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
     
     % KDE Computation
-    density = KDE_large(Dist_NN, Hyperparameters);
+    density = KDE(Dist_NN, Hyperparameters);
 
     % Spectral Unmixing Step
     Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
     pixelPurity = compute_purity(X,Hyperparameters);
 
     parfor tIdx = 1:numClusterings
-        [C, K, Dt_temp] = LearningbyUnsupervisedNonlinearDiffusion_large(X, Hyperparameters, ts(tIdx), G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+        [C, K, Dt_temp] = LUND(X, Hyperparameters, ts(tIdx), G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
         OAs(k,tIdx) = calcAccuracy(Y,C,~strcmp('Jasper Ridge', dataSelectedName));
     end
 end
@@ -79,10 +99,13 @@ if visualizeOn
     axis tight 
     xlabel('$t$', 'interpreter', 'latex')
     ylabel('OA', 'interpreter', 'latex')
-%     yticks(round(min(median(OAs)),1):0.05:round(max(median(OAs)),1))
-    ylim([0.4,max(median(OAs))])
+    if ~strcmp('Indian Pines', dataSelectedName)
+        yticks(round(min(median(OAs)),1):0.05:round(max(median(OAs)),1))
+    else
+        ylim([0.4,max(median(OAs))])
+        yticks(0.4:0.01:0.44)
+    end
     grid on 
-    yticks(0.4:0.01:0.44)
 
     tickIdces = 1:2:numClusterings;
      

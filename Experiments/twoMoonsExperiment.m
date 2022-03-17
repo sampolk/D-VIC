@@ -1,9 +1,23 @@
+%{
 
-%% 
+This script replicates Figure 1 in the following article: 
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+Classical algorithms (K-Means and GMM) are shown to fail to recover the
+nonlinear decision boundary for the idealized ground truth clustering. 
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
+%% Build synthetic dataset
 
 [X,Y] = twomoons(500);
 
-%% 
+%% Cluster and visualize the synthetic dataset results
+
 h = figure;
 scatter(X(:,1), X(:,2),36, Y, 'filled')
 set(gca,'FontSize', 20, 'FontName', 'Times')

@@ -1,5 +1,22 @@
 function [ OA, kappa, tIdx, OATemp, kappaTemp] = calcAccuracy(Y, C, ignore1flag)
+%{ 
+Calculates statistics on clusterings
 
+Inputs: Y (GT Labels), C (Estimated Clustering), and ignore1flag (1 if Y=1
+        class is ignored in performance calculations).
+
+Outputs: OA (Overall Accuracy), kappa (Cohen's kappa), tIdx (optimal
+         clustering index), OATemp (OA values for each tIdx) and kappaTemp 
+         (kappa values for each tIdx)
+
+C may be one of the following formats: 
+
+    - Structure with "Labels" field that is an nxM array with a clustering
+    of X in each column. 
+    - an nx1 clustering of X.
+
+Copyright: Sam L. Polk (2022).
+%}
 if isstruct(C)
 
     numC = size(C.Labels,2);

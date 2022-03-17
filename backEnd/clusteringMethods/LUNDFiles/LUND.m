@@ -1,4 +1,4 @@
-function [C, K, Dt] = LearningbyUnsupervisedNonlinearDiffusion_large(X, Hyperparameters, t, G, p)
+function [C, K, Dt] = LUND(X, Hyperparameters, t, G, p)
 %{
  - This function produces a structure with multiscale clusterings produced
    with the LUND algorithm, presented in the following paper. 
@@ -8,12 +8,17 @@ function [C, K, Dt] = LearningbyUnsupervisedNonlinearDiffusion_large(X, Hyperpar
           pp. 1-56. 2019.
     
    and analyzed further in the following papers:
-
-        - Murphy, James M and Polk, Sam L., 2020. A Multiscale Environment 
-          for Learning By Diffusion. arXiv preprint, arXiv:2102.00500.
-        - Polk, Sam L. and Murphy James M., 2021. Multiscale Spectral-
-          Spatial Diffusion Geometry for Hyperspectral Image Clusteri
-          (In Review)
+    
+        - Murphy, J. M., & Polk, S. L. (2022). A multiscale environment for 
+          learning by diffusion. Applied and Computational Harmonic 
+          Analysis, 57, 58-100.
+        - Polk, S. L., & Murphy, J. M. (2021, July). Multiscale Clustering 
+          of Hyperspectral Images Through Spectral-Spatial Diffusion 
+          Geometry. In 2021 IEEE International Geoscience and Remote 
+          Sensing Symposium IGARSS (pp. 4688-4691). IEEE.
+        - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+          Diffusion and Volume Maximization-Based Clustering of Highly 
+          Mixed Hyperspectral Images. (In Review).
 
 Inputs: X:                      Data matrix.
         Hyperparameters:        Optional structure with graph parameters
@@ -31,7 +36,7 @@ Output:
                                 clusters in the Labels(:,t) clustering.
             - Dt:               n x 1 matrix storing \mathcal{D}_t(x). 
 
-© 2021 Sam L Polk, Tufts University. 
+© 2022 Sam L Polk, Tufts University. 
 email: samuel.polk@tufts.edu
 %}  
 

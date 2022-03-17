@@ -16,9 +16,9 @@ function [varargout]=hysime(varargin)
 %        Ek matrix which columns are the eigenvectors that span 
 %           the signal subspace
 %
-%  Copyright: Jos� Nascimento (zen@isel.pt)
+%  Copyright: Jose Nascimento (zen@isel.pt)
 %             & 
-%             Jos� Bioucas-Dias (bioucas@lx.it.pt)
+%             Jose Bioucas-Dias (bioucas@lx.it.pt)
 %
 %  For any comments contact the authors
 

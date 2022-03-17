@@ -1,11 +1,27 @@
-%% GMM
-% Extracts performances for GMM+PCA
+%{
 
-numReplicates = 10;
+This script runs the Gaussian Mixture Model Clustering (GMM) on real HSI 
+data. This script was used in the following article:
 
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% Run GMM
 datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
 datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
+numReplicates = 100;
 
 for dataIdx =  1:4
 

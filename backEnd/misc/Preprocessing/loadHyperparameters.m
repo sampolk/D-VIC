@@ -28,10 +28,6 @@ if strcmp(AlgName, 'D-VIS')
         NN = 40;
         pct = 76.0526315789474;
         K = 16;
-    elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 60;
-        pct = 31.5789473684211;
-        K = 5;
     end
 
     % Set Default parameters
@@ -68,10 +64,6 @@ elseif strcmp(AlgName, 'LUND')
         NN = 40;
         pct = 65;
         K = 16;
-    elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 60;
-        pct = 5;
-        K = 5;
     end
 
     % Set Default parameters
@@ -96,8 +88,6 @@ elseif strcmp(AlgName, 'SymNMF')
         NN  = 130;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 600;
-    elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 600;
     end
 
     Hyperparameters.DiffusionNN = NN;
@@ -115,9 +105,6 @@ elseif strcmp(AlgName, 'SC')
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 100;
         K = 16;
-    elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 10;
-        K = 5;
     end
 
     Hyperparameters.DiffusionNN = NN;
@@ -134,8 +121,6 @@ elseif strcmp(AlgName, 'KNN-SSC')
         NN  = 50;
     elseif strcmp(HSIName, 'Indian Pines')
         NN = 50;
-    elseif strcmp(HSIName, 'Pavia Subset')
-        NN = 900;
     end
 
     Hyperparameters.DiffusionNN = NN;

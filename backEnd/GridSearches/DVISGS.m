@@ -1,6 +1,22 @@
-%% DVIS
-% Extracts performances for DVIS
+%{
 
+This script runs a grid search over relevant hyperparameter values for the
+Diffusion and Volume maximization-based Clustering (D-VIC) on real 
+hyperspectral images. This script was used in the following article:
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% Grid Search Parameters
    
 % Set number of nearest neighbors to use in graph and KDE construction.
@@ -11,14 +27,13 @@ NNs = 10:10:100;
 prcts{4} =  65:(100-65)/19:100;
 prcts{2} =  65:(100-65)/29:100;
 prcts{1} =  88:(100-88)/19:100;
-prcts{3} = 15:(60 -15)/19:60;
 prcts{5} = 5:10:95;
 
-numReplicates = 20;
+numReplicates = 100;
  
 %% Grid searches
-datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
-datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
+datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected'};
+datasetNames = {'Salinas A',      'Jasper Ridge','Indian Pines'};
 
 for dataIdx =  [5]
 
@@ -70,17 +85,17 @@ for dataIdx =  [5]
             parfor k = 1:numReplicates 
 
                 % Graph decomposition
-                G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+                G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
                 
                 % KDE Computation
-                density = KDE_large(Dist_NN, Hyperparameters);
+                density = KDE(Dist_NN, Hyperparameters);
         
                 % Spectral Unmixing Step
                 pixelPurity = compute_purity(X,Hyperparameters);
     
                 if G.EigenVals(2)<1
 
-                    [Clusterings, ~] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+                    [Clusterings, ~] = MLUND(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
                     [ OAs(i,j, k), kappas(i,j, k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('JasperRidge', datasets{dataIdx}));
                     Cs(:,i,j, k) = Clusterings.Labels(:,tIdx);
                      

@@ -1,4 +1,4 @@
-function [G,W] = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN)
+function [G,W] = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN)
 
 n = length(X); 
 NN = Hyperparameters.DiffusionNN;

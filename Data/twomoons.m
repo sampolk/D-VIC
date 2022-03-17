@@ -1,4 +1,5 @@
 function [X,label] = twomoons(n) % Generate two moons, with n points in each moon.
+% Source: https://www.mathworks.com/help/stats/label-data-using-semi-supervised-learning-techniques.html
 
 % Specify the radius and relevant angles for the two moons.
 noise = (1/6).*randn(n,1);

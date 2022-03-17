@@ -2,13 +2,7 @@ function eda(x, log_on, Y)
 
 if length(x) == 7138 % Salinas A
     M = 83;
-    N = 86;
-elseif length(x) == 250000 % AVIRIS-NG Subset
-    M = 500;
-    N = 500;
-elseif length(x) == 1701540 % Full AVIRIS-NG Image
-    M = 3151;
-    N = 540;
+    N = 86;  
 elseif length(x) == 314368 % Kennedy Space Center
     M = 512;
     N = 614;
@@ -27,20 +21,20 @@ elseif length(x) == 207400 % Pavia University
 elseif length(x) == 111104 % Salinas
     M = 512;
     N = 217;
-elseif length(x) == 2803351
+elseif length(x) == 2803351 % Madingley
     M = 1601;
     N = 1751;
-elseif length(x) == 206976
+elseif length(x) == 206976 % Madingley Downsampled
     M = 448;
     N = 462;
-elseif length(x) == 1e4
+elseif length(x) == 1e4 % Jasper Ridge
     M = 100;
     N = 100;
 else
     M = NaN;
 end
-if length(x) == 1e4
-    flag = 0;
+if length(x) == 1e4 % True if Jasper Ridge
+    flag = 0; % Ignore 1-class
 else
     flag = 1;
 end

@@ -1,13 +1,12 @@
-function [C, K, Dt] = ADVIS(X, Hyperparameters, t, Y, G, density, pixelPurity) 
+function [C, K, Dt] = DVIS(X, Hyperparameters, t, Y, G, density, pixelPurity) 
 %{
-This function produces image segmentations for the Active and Diffusion and 
-VCA-assisted Image Segmentation algorithm for HSI material discrimination.
+This function produces image segmentations for the Diffusion and Volume
+maximization-based Image Clustering algorithm for HSI material 
+discrimination.
 
 Inputs: X:                      Data matrix.
         Hyperparameters:        Optional structure with graph parameters
-                                with required fields:  
-                                    - numLabels: the budget provided for
-                                                 ground truth label queries
+                                with required fields:   
                                     - K_Known:   The number of classes for
                                                  image segmentation.
         t:                      Diffusion time parameter.
@@ -17,11 +16,11 @@ Inputs: X:                      Data matrix.
                                 'extract_graph_large.m' 
         zeta:                   Kernel Density Estimator
 Output: 
-            - C:                n x 1 vector storing the ADVIS partition. 
+            - C:                n x 1 vector storing the DVIS partition. 
             - K:                Scalar, number of classes in C.
             - Dt:               n x 1 matrix storing \mathcal{D}_t(x). 
 
-© 2021 Sam L Polk, Tufts University. 
+© 2022 Sam L Polk, Tufts University. 
 email: samuel.polk@tufts.edu
 %}  
 
@@ -29,11 +28,11 @@ email: samuel.polk@tufts.edu
 % Parse Arguments
 if nargin == 5
     % Extract Graph
-    G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+    G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
 end
 if nargin < 5
     % Extract KDE 
-    density = KDE_large(Dist_NN, Hyperparameters);
+    density = KDE(Dist_NN, Hyperparameters);
 end
 if nargin < 6
     % Extract Pixel Purity
@@ -46,7 +45,7 @@ if nargin < 6
     Hyperparameters.EndmemberParams.Algorithm = 'VCA';
     
     % Extract Pixel Purity using VCA
-    pixelPurity = compute_purity(X,Hyperparameters);  
+    pixelPurity = computePurity(X,Hyperparameters);  
 end
 
 % Aggregate purity and density into single measure, zeta
@@ -69,13 +68,13 @@ end
 % ========= Perform Diffusion Distance Nearest Neighbor Searches ==========
 n = length(X);
 % Calculate diffusion map
-DiffusionMap = zeros(n,Hyperparameters.NEigs);
-for l = 1:size(DiffusionMap,2)
-    DiffusionMap(:,l) = G.EigenVecs(:,l).*(G.EigenVals(l).^t);
+diffusionMap = zeros(n,Hyperparameters.NEigs);
+for l = 1:size(diffusionMap,2)
+    diffusionMap(:,l) = G.EigenVecs(:,l).*(G.EigenVals(l).^t);
 end
  
 % Compute Hyperparameters.NumDtNeighbors Dt-nearest neighbors.
-[IdxNN, D] = knnsearch(DiffusionMap, DiffusionMap, 'K', Hyperparameters.NumDtNeighbors);
+[IdxNN, D] = knnsearch(diffusionMap, diffusionMap, 'K', Hyperparameters.NumDtNeighbors);
 
 % =========================== Calculate d_t(x) ============================
 % compute d_t(x), stored as dt
@@ -84,7 +83,7 @@ zeta = zeta./sum(zeta);
 zeta_max = max(zeta);
 for i=1:n
     if zeta(i) == zeta_max
-        dt(i) = max(pdist2(DiffusionMap(i,:),DiffusionMap));
+        dt(i) = max(pdist2(diffusionMap(i,:),diffusionMap));
     else
         
         idces =  find(zeta(IdxNN(i,:))>zeta(i));
@@ -97,7 +96,7 @@ for i=1:n
         else
             % In this case, none of the first Hyperparameters.NumDtNeighbors Dt-nearest neighbors of
             % X(i,:) are also higher density. So, we do the full search.
-            dt(i) = min(pdist2(DiffusionMap(i,:),DiffusionMap(zeta>zeta(i),:)));
+            dt(i) = min(pdist2(diffusionMap(i,:),diffusionMap(zeta>zeta(i),:)));
         end
     end
 end
@@ -105,40 +104,33 @@ end
 % =========================== Label Class Modes ===========================
 
 % Extract Dt(x) and sort in descending order
-Dt = dt.*zeta;
+Dt = rt.*zeta;
 [~, m_sorting] = sort(Dt,'descend');
 
-% Determine K and label queried points
-K = Hyperparameters.K_Known;
-numLabels = Hyperparameters.numLabels;
- 
-C = zeros(n,1);
-% Applied queried labels
-C(m_sorting(1:numLabels)) = Y(m_sorting(1:numLabels)); 
-
-% Assign labels to class modes if we don't query enough ground truth
-% classes
-missingLabels = setdiff(1:K, unique(Y(m_sorting(1:numLabels))));
-numMissingLabels = length(missingLabels);
-if numMissingLabels >0
-    C(m_sorting(numLabels+1:numLabels+numMissingLabels)) = missingLabels;
+% Determine K based on the ratio of sorted Dt(x_{m_k}). 
+if isfield(Hyperparameters, 'K_Known')
+    K = Hyperparameters.K_Known;
+else
+    [~, K] = max(Dt(m_sorting(2:ceil(n/2)-1))./Dt(m_sorting(3:ceil(n/2))));
+    K=K+1;
 end
 
-% ======================== Label Non-Modal Points =========================
-
+% ========================== Label Non Modal Pts ==========================
 if K == 1
     C = ones(n,1);
 else
     
-    % For indexing purposes
-    idx = 1:n; 
+    idx = 1:n;
+    C = zeros(n,1);
+    % Label modes
+    C(m_sorting(1:K)) = 1:K;
 
     % Label non-modal points according to the label of their Dt-nearest
     % neighbor of higher density that is already labeled.
-    [~,l_sorting] = sort(zeta,'descend');
+    [~,lSorting] = sort(zeta,'descend');
      
     for j = 1:n
-        i = l_sorting(j);
+        i = lSorting(j);
         if C(i)==0 % unlabeled point
             
             NNs = IdxNN(i,:);
@@ -152,7 +144,7 @@ else
                     disp([])
                 end
                 
-                [~,temp_idx] = min(pdist2(DiffusionMap(i,:), DiffusionMap(candidates,:)));
+                [~,temp_idx] = min(pdist2(diffusionMap(i,:), diffusionMap(candidates,:)));
                 C(i) = C(candidates(temp_idx));    
             else
                 % At least one of the Dt-nearest neighbors is higher

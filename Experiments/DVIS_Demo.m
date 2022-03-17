@@ -1,3 +1,23 @@
+%{
+
+This script replicates Figures 6-8 and Tables I-II in the following article
+
+    - Polk, S. L., Cui, K., Plemmons, R. J., and Murphy, J. M., (2022). 
+      Diffusion and Volume Maximization-Based Clustering of Highly 
+      Mixed Hyperspectral Images. (In Review).
+
+D-VIC is shown to substantially outperform related hypserspectral image 
+clustering algorithms on 3 real datasets. 
+
+To run this script, real hyperspectral image data (Salinas A, Indian Pines, 
+& Jasper Ridge) must be downloaded from the following links:
+
+    - http://www.ehu.eus/ccwintco/index.php?title=Hyperspectral_Remote_Sensing_Scenes
+    - https://rslab.ut.ac.ir/data
+
+(c) Copyright Sam L. Polk, Tufts University, 2022.
+
+%}
 %% Choose the dataset
 clear
 clc
@@ -125,7 +145,7 @@ for i = 1:numReplicates
     Idx_NN(:,1)  = []; 
 
     % Graph decomposition
-    G = extract_graph_large(X, hyperparameters{4}, Idx_NN, Dist_NN);
+    G = extractGraph(X, hyperparameters{4}, Idx_NN, Dist_NN);
 
     % Spectral Clustering
     Cstemp(:,i) = SpectralClustering(G,K);
@@ -211,15 +231,15 @@ Idx_NN(:,1)  = [];
 Dist_NN(:,1) = [];
 
 % Graph decomposition
-G = extract_graph_large(X, hyperparameters{7}, Idx_NN, Dist_NN);
+G = extractGraph(X, hyperparameters{7}, Idx_NN, Dist_NN);
 
 % KDE Computation
-density = KDE_large(Dist_NN, hyperparameters{7});
+density = KDE(Dist_NN, hyperparameters{7});
 
 runtimes(7) = toc;
 
 % Run spectral clustering with the KNN-SSC weight matrix
-[Clusterings, runtimesLUND] = MLUND_large(X, hyperparameters{7}, G, density);
+[Clusterings, runtimesLUND] = MLUND(X, hyperparameters{7}, G, density);
 
 [ OAs(7), kappas(7), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
 
@@ -246,10 +266,10 @@ for k = 1:numReplicates
     Dist_NN(:,1) = [];
 
     % Graph decomposition
-    G = extract_graph_large(X, Hyperparameters, Idx_NN, Dist_NN);
+    G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
     
     % KDE Computation
-    density = KDE_large(Dist_NN, Hyperparameters);
+    density = KDE(Dist_NN, Hyperparameters);
 
     % Spectral Unmixing Step
     Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
@@ -259,7 +279,7 @@ for k = 1:numReplicates
 
     if G.EigenVals(2)<1 % Only use graphs with good spectral decompositions
 
-        [Clusterings, DVISruntimes] = MLUND_large(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
+        [Clusterings, DVISruntimes] = MLUND(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
         [ OAtemp(k), kappatemp(k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
         Cstemp(:,k) = Clusterings.Labels(:,tIdx);
         runtimetemp(k) = runtimetemp(k) + DVISruntimes(tIdx);
@@ -275,9 +295,7 @@ kappas(8) = nanmedian(kappatemp);
 runtimes(8) = nanmedian(runtimetemp);
 [~,i] = min(abs(OAtemp-OAs(8))); % clustering producing the closest OA to the mean performance
 Cs(:,8) = Cstemp(:,i);
-
-%% 
-'done'
+ 
 %% Visualizations
 
 if visualizeOn

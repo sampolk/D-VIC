@@ -15,13 +15,6 @@ elseif strcmp(HSIName, 'Jasper Ridge')
     HSI = reshape(load('jasperRidge2_R198.mat').Y', load('jasperRidge2_R198.mat').nRow, load('jasperRidge2_R198.mat').nCol, length(load('jasperRidge2_R198.mat').SlectBands));
     [~,Y] = max(load('end4.mat').A',[],2);
     GT = reshape(Y,  load('jasperRidge2_R198.mat').nRow, load('jasperRidge2_R198.mat').nCol);
-    
-elseif strcmp(HSIName, 'Pavia Subset')
-
-    load('Pavia_gt')
-    load('Pavia.mat')
-    HSI = pavia(201:400, 430:530,:);
-    GT = pavia_gt(201:400, 430:530);
 
 elseif strcmp(HSIName, 'Synthetic HSI')
 
