@@ -9,7 +9,7 @@ else
     X = reshape(HSI,M*N,D);
 end
 
-if strcmp(AlgName, 'D-VIS')
+if strcmp(AlgName, 'D-VIC')
 
     [~,Dist_NN] = knnsearch(X,X,'K', 1000);
     if strcmp(HSIName, 'Synthetic Data')

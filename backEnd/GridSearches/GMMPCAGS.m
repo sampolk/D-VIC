@@ -19,11 +19,12 @@ To run this script, real hyperspectral image data (Salinas A, Indian Pines,
 
 %}
 %% Run GMM
-datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
-datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
 numReplicates = 100;
+datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected'};
+datasetNames = {'Salinas A',      'Jasper Ridge','Indian Pines'};
 
-for dataIdx =  1:4
+for dataIdx =  1:3
+
 
     % ===================== Load and Preprocess Data ======================
     [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{dataIdx});

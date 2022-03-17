@@ -32,8 +32,8 @@ dataSelectedName = datasetNames{input(prompt)};
 [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(dataSelectedName);
 
 % Load all optimal hyperparameter sets
-algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIS'};
-Hyperparameters = loadHyperparameters(HSI, dataSelectedName, 'D-VIS');
+algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIC'};
+Hyperparameters = loadHyperparameters(HSI, dataSelectedName, 'D-VIC');
 
 % Nearest neighbor search
 [Idx_NN, Dist_NN] = knnsearch(X,X,'K', max(Hyperparameters.DiffusionNN,Hyperparameters.DensityNN)+1);
@@ -45,7 +45,7 @@ disp('Dataset loaded.')
 % Determine number of replicates for stochastic algorithms
 profile off;
 profile on;
-prompt = 'Enter the number of desired runs for D-VIS: \n';
+prompt = 'Enter the number of desired runs for D-VIC: \n';
 numReplicates = input(prompt);
 if ~(round(numReplicates)-numReplicates == 0)
     error('The number of replicates must be an integer.')
@@ -64,7 +64,7 @@ clc
 profile off;
 disp('Ready to Analyze HSI data.')
 
-%% Run D-VIS 100 times and keep all clustering OAs
+%% Run D-VIC 100 times and keep all clustering OAs
 
 ts = 10:10:200;
 numClusterings = length(ts);

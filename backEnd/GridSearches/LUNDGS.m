@@ -26,10 +26,11 @@ prctiles = 5:10:95;
 numReplicates = 10;
 
 %% Grid searches
-datasets = {'SalinasACorrected',  'JasperRidge','PaviaCenterSubset2','IndianPinesCorrected',  'syntheticHSI5149Stretched'};
-datasetNames = {'Salinas A',      'Jasper Ridge',  'Pavia Subset',    'Indian Pines',           'Synthetic HSI'};
+datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected'};
+datasetNames = {'Salinas A',      'Jasper Ridge','Indian Pines'};
 
-for dataIdx =  2:4
+for dataIdx =  1:3
+
 
     % ===================== Load and Preprocess Data ======================
     [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(datasetNames{dataIdx});

@@ -36,7 +36,7 @@ CLUND = Clusterings.Labels(:,tIdx);
 
 %% Run D-VIS
 
-Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'D-VIS');
+Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'D-VIC');
 G = extractGraph(X, Hyperparameters, Idx_NN, Dist_NN);
 density = KDE(Dist_NN, Hyperparameters);
 

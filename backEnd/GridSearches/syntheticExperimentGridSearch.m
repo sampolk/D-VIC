@@ -27,7 +27,7 @@ Dist_NN(:,1) = [];
 load('syntheticData.mat')
 
 % Load default hyperparameters
-Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'D-VIS'); 
+Hyperparameters = loadHyperparameters(X, 'Synthetic Data', 'D-VIC'); 
 Hyperparameters.SpatialParams.ImageSize = [n,1];
 
 % Parameter grid to be used
@@ -37,7 +37,7 @@ numReplicates = 8;
 
 %% Grid searches
 % This file runs the grid search across the relevant values to recover the
-% best-case D-VIS and LUND performances.
+% best-case D-VIC and LUND performances.
 
 % Preallocate memory
 maxOA = 0;
@@ -102,7 +102,7 @@ for i = 1:length(NNs)
 
 
 
-                % Run D-VIS
+                % Run D-VIC
                 [Clusterings, ~] = MLUND(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
                 [ OAsDVIC(i,j,k), kappasDVIC(i,j,k), tIdx] = calcAccuracy(Y, Clusterings, 0);
                 CsDVIC(:,i,j,k) = Clusterings.Labels(:,tIdx);

@@ -35,7 +35,7 @@ numReplicates = 100;
 datasets = {'SalinasACorrected',  'JasperRidge','IndianPinesCorrected'};
 datasetNames = {'Salinas A',      'Jasper Ridge','Indian Pines'};
 
-for dataIdx =  [5]
+for dataIdx =  1:3
 
     prctiles = prcts{dataIdx};
     if dataIdx == 5
@@ -49,9 +49,9 @@ for dataIdx =  [5]
     [Idx_NN, Dist_NN] = knnsearch(X,X,'K',1000);
     Idx_NN(:,1)  = []; 
     Dist_NN(:,1) = [];  
-    Hyperparameters = loadHyperparameters(HSI, datasetNames{dataIdx}, 'D-VIS'); % Load default hyperparameters
+    Hyperparameters = loadHyperparameters(HSI, datasetNames{dataIdx}, 'D-VIC'); % Load default hyperparameters
 
-    % ============================== DVIS ==============================
+    % ============================== D-VIC ==============================
  
     % Preallocate memory
     maxOA = 0;
@@ -101,12 +101,11 @@ for dataIdx =  [5]
                      
                end
     
-                disp(['DVIS: '])
                 disp([i/length(NNs), j/length(prctiles), k/numReplicates, maxOA])
             end
             maxOA = max(mean(OAs,3), [],'all');
             
-            save(strcat('DVISResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA')
+            save(strcat('DVICResults', datasets{dataIdx}),  'OAs', 'kappas', 'Cs', 'NNs', 'prctiles', 'numReplicates', 'maxOA')
         end
     end
 

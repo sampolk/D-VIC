@@ -25,7 +25,7 @@ To run this script, real hyperspectral image data (Salinas A, Indian Pines,
 %% RunGridSearches
 
 LUNDGS
-DVISGS
+DVICGS
 SCGS
 SymNMFGS
 KMeansGS
@@ -138,7 +138,7 @@ for i = 1
     end
     
     % Algorithms with 2 hyperparameters to optimize, but with averages
-    algsTemp= {'DVIS'};
+    algsTemp= {'DVIC'};
     idces = [8]; 
     for j = 1:length(algsTemp)
 %         try
@@ -286,7 +286,7 @@ for i =  2
     Idx_NN(:,1)  = []; 
     Dist_NN(:,1) = [];  
     ending = strcat('Results', datasets{i});
-    load(strcat('DVIS', ending, '50'))
+    load(strcat('DVIC', ending, '50'))
 
     mat = median(OAs,3); 
     mat = mat(:,11:30);

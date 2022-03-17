@@ -32,7 +32,7 @@ dataSelectedName = datasetNames{input(prompt)};
 [X,M,N,D,HSI,GT,Y,n, K] = loadHSI(dataSelectedName);
 
 % Load all optimal hyperparameter sets
-algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIS'};
+algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'LUND', 'D-VIC'};
 OAs = zeros(1,8);
 kappas = zeros(1,8); 
 runtimes = zeros(1,8);
@@ -246,7 +246,7 @@ runtimes(7) = toc;
 runtimes(7) = runtimes(7) + runtimesLUND(tIdx);
 Cs(:,7) = Clusterings.Labels(:,tIdx);
 
-%% D-VIS
+%% D-VIC
 
 Hyperparameters = hyperparameters{8};
 NN = max(Hyperparameters.DiffusionNN,Hyperparameters.DensityNN);
