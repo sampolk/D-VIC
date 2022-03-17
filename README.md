@@ -4,9 +4,9 @@ This toolbox allows the implementation of the following diffusion-based clusteri
 
 - Learning by Unsupervised Nonlinear Diffusion (LUND)
 - Multiscale Learning by Unsupervised Nonlinear Diffusion (M-LUND)
+- Diffusion and Volume maximization-based Image Clustering (D-VIC)
 <!-- - Spatially Regularized Diffusion Learning (SRDL) -->
 <!-- - Multiscale Spatially Regularized Diffusion Learning (M-SRDL) -->
-- Diffusion and Volume maximization-based Image Clustering (D-VIC)
 <!-- - Active Diffusion and VCA-Assisted Image Segmentation (ADVIS) -->
 
 This package can be used to generate experiments in the following articles:
