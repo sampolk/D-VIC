@@ -10,7 +10,7 @@ This toolbox allows the implementation of the following diffusion-based clusteri
 This package can be used to generate experiments in the following articles:
 
 1. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." arXiv. arXiv:2203.09992
-2. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." arXiv preprint arXiv:2203.09992.
+2. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." In Review.
 
 The following scripts (in the Experiments folder) generate the relevant experiments:
 
