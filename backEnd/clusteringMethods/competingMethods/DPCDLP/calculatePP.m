@@ -4,6 +4,6 @@ function [PP,WW]=calculatePP(W,neighbs)
     WW=zeros(n);
     neighbs=neighbs+b';
     WW(neighbs)=1;
-    % WW=WW'.*W;
+    WW=WW'.*W;
     PP=WW./sum(WW,2);
 end
