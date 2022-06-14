@@ -1,5 +1,5 @@
 function W=calculateP(X,dis,mu,sigma)
-n=size(dis,1);
+n=size(X,1);
 W=dis.^2;
 W=W./(mu*(sigma.^2));
 W=exp(-W);
