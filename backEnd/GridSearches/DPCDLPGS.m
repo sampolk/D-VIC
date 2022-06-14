@@ -14,7 +14,7 @@ prctiles = 5:10:95;
 mu=1;
 alfa=1;
 lambda=0;
-t2=round(10.^(0:0.2:1.5));
+t2=[1,2,3,5,10];
 
 
 %%
@@ -54,12 +54,6 @@ for dataIdx =  [1]
                 delete(gcp('nocreate'));
                 poolObj = parpool;
             end
-    
-            if dataIdx ==5
-                Hyperparameters.EndmemberParams.K = K; % compute hysime to get best estimate for number of endmembers
-            else
-                Hyperparameters.EndmemberParams.K = hysime(X'); % compute hysime to get best estimate for number of endmembers
-            end 
             
             sigma=calculateSigma(X,prctiles(j)/100);
             W=calculateP(X,dis,mu,sigma);
