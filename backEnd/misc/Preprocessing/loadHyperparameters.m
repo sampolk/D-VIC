@@ -124,6 +124,24 @@ elseif strcmp(AlgName, 'KNN-SSC')
     end
 
     Hyperparameters.DiffusionNN = NN;
+    
+elseif strcmp(AlgName, 'FSSC')
+
+    if strcmp(HSIName, 'Synthetic Data')
+        error('This algorithm is not supported for Synthetic Dataset')
+    elseif strcmp(HSIName, 'Salinas A')
+        NN = 80;
+        alpha_u = 0.5;
+    elseif strcmp(HSIName, 'Jasper Ridge')
+        NN = 600;
+        alpha_u = 0.9;
+    elseif strcmp(HSIName, 'Indian Pines')
+        NN = 600;
+        alpha_u = 0.1;
+    end
+
+    Hyperparameters.DiffusionNN = NN;
+    Hyperparameters.alpha_u = alpha_u;
 
 else 
     Hyperparameters = [];
