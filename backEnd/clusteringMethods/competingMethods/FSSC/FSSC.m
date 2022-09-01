@@ -92,6 +92,7 @@ B = zeros(n,m);
 for i = 1:n
     [B(i,:),~] = EProjSimplex_new(-E_distance_m(i,:)/(2*gamma(i)));
 end
+B = sparse(B);
 
 %% Solve SSL to get soft label matrix F_soft 
 %% Y
@@ -107,14 +108,14 @@ for j =1:n
 end
 % Y_initial_m = Y_m;
 %delta
-delta = diag(sum(B));
+delta = sparse(diag(sum(B)));
 W = (B/(delta))*B';
 % L = diag(sum(W)) - W;
 %% Objective Function
 % Object_Func = zeros(max(dd_first,dd_second),2);
 %% alpha and beta
 alpha = zeros(n,1);alpha(Rank) = alpha_l;alpha(reRank) = alpha_u;
-alpha = diag(alpha);beta = eye(n)-alpha;
+alpha = spdiags(alpha,0,n,n);beta = spdiags(ones(n,1),0,n,n)-alpha;
 %% F
 P_c = delta - B'*alpha*B;    %% mn mn m^2*n时间复杂度是m^2*n
 P_1_c = (alpha*B)/(P_c);     %% mn m^3
@@ -146,8 +147,8 @@ for i = 1:K
 end
 % Y_initial = Y_c;
 alpha_c = zeros(n,1);alpha_c(rp) = alpha_lc;alpha_c(rerp) = alpha_uc;
-alpha_c = diag(alpha_c);
-beta_c = eye(n)-alpha_c;
+alpha_c = spdiags(alpha_c,0,n,n);
+beta_c = spdiags(ones(n,1),0,n,n)-alpha_c;
 %% F_c
 P_c = delta - B'*alpha_c*B;  %% mn mn m^2*n时间复杂度是m^2*n
 P_1_c = (alpha_c*B)/(P_c);   %% mn m^3

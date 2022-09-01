@@ -1,4 +1,4 @@
-function C = knn_SSC( Y, alpha, num_neighbors, Idx_NN)
+function C = knn_SSC( Y, alpha, num_neighbors, Idx_NN, lambda)
 % this function implements KNN-SSC algorithm
 % min ||C||_1 + \lambda/2  \sum||Y(:,i)-D_i C(:,i)||_F^2.
 % input: Y = input data
@@ -16,11 +16,15 @@ function C = knn_SSC( Y, alpha, num_neighbors, Idx_NN)
 N = size(Y,2);
 
 % setting penalty parameters for the ADMM
-mu1 = alpha * 1/computeLambda_mat(Y);
+if nargin == 5
+    mu1 = 1/lambda;
+else
+    mu1 = alpha * 1/computeLambda_mat(Y);
+end
 mu2 = alpha * 1;
 thr = 2*10^-4; 
 maxIter=200;
-C = zeros(N);
+C = sparse(N,N);
 % for each data point
 for i = 1 : N
     %find k nearest neighbors

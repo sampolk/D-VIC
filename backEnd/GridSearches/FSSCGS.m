@@ -49,7 +49,7 @@ for dataIdx =  [1]
             % number of replicates
             for k = 1:numReplicates
 
-                [~,~,C,~,~] = FSSC(X,q,NNs(i),K,rate,alpha_u(j));
+                [~,~,C,~,~] = FSSC(X,q, NNs(i),K,rate,alpha_u(j));
                 [ OAs(i,j, k), kappas(i,j, k), tIdx] = calcAccuracy(Y, C, ~strcmp('JasperRidge', datasets{dataIdx}));
                 Cs(:,i,j,k) = C;
                
