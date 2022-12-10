@@ -9,8 +9,8 @@ This toolbox allows the implementation of the following diffusion-based clusteri
 
 This package can be used to generate experiments in the following articles:
 
-1. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." arXiv. arXiv:2203.09992
-2. Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." In Review.
+1. Polk, S. L., Cui, K., Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." arXiv. arXiv:2203.09992
+2. Polk, S. L., Cui, K., Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." In the Proceedings of IEEE IGARSS 2022 (2022).
 
 The following scripts (in the Experiments folder) generate the relevant experiments:
 
@@ -27,9 +27,9 @@ Real hyperspectral image data (Salinas A, which was used in both articles, as we
     
 Users are free to modify the D-VIC toolbox as they wish. If you find it useful or use it in any publications, please cite the following papers:
 
-- Polk, S. L., Chan, A. H. A., Cui, Kangning, Plemmons, R. J., Coomes, D. A., & Murphy, J. M. (2022). "Unsupervised detection of ash dieback disease (_Hymenoscyphus fraxineus_) using diffusion-based hyperspectral image clustering" To Appear.
-- Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. (2022). "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." To Appear.
-- Polk, S. L., Cui, Kangning, Plemmons, R. J., & Murphy, J. M. "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." arXiv preprint arXiv:2203.09992.
+- Polk, S. L., Cui, K., Plemmons, R. J., & Murphy, J. M. "Diffusion and Volume Maximization-Based Clustering of Highly Mixed Hyperspectral Images." arXiv. arXiv:2203.09992
+- Polk, S. L., Chan, A. H. A., Cui, K., Plemmons, R. J., Coomes, D. A., & Murphy, J. M. (2022). "Unsupervised detection of ash dieback disease (_Hymenoscyphus fraxineus_) using diffusion-based hyperspectral image clustering" In the Proceedings of IEEE IGARSS 2022 (2022).
+- Polk, S. L., Cui, K., Plemmons, R. J., & Murphy, J. M. (2022). "Active Diffusion and VCA-Assisted Image Segmentation of Hyperspectral Images." In the Proceedings of IEEE IGARSS 2022 (2022).
 - Murphy, J. M., & Polk, S. L. (2022). "A multiscale environment for learning by diffusion." Applied and Computational Harmonic Analysis, 57, 58-100.
 - Maggioni, M., & Murphy, J. M. (2019). Learning by Unsupervised Nonlinear Diffusion. Journal of Machine Learning Research, 20(160), 1-56.
 
