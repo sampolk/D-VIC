@@ -15,7 +15,7 @@ This package can be used to generate experiments in the following articles:
 The following scripts (in the Experiments folder) generate the relevant experiments:
 
 - DVIC_demo.m evaluates the D-VIS clustering algorithm on four benchmark hyperspectral images. This script can be used to replicate experiments that appear in Section 4.1 of article 1.
-- ADVIS_demo.m compares the ADVIS active learning algorithm against the D-VIS clustering algorithm . This script is used for experiments that appear in article 2.
+- ADVIS_demo.m compares the ADVIS active learning algorithm against the D-VIS clustering algorithm. This script is used for experiments that appear in article 2.
 - syntheticExperiment.m replicates the synthetic data experiments presented in Section 3.2 of article 1.  
 - runGridSearches.m replicates hyperparameter optimization performed in article 1 and replicates Figure 8 in article 1. 
 - tAnalysis.m analyzes the robustness of D-VIC to diffusion time and replicates Figure 9 in article 1. 
@@ -33,6 +33,6 @@ Users are free to modify the D-VIC toolbox as they wish. If you find it useful o
 - Murphy, J. M., & Polk, S. L. (2022). "A multiscale environment for learning by diffusion." _Applied and Computational Harmonic Analysis_, 57, 58-100.
 - Maggioni, M., & Murphy, J. M. (2019). Learning by Unsupervised Nonlinear Diffusion. _Journal of Machine Learning Research_, 20(160), 1-56.
 
-Please write with any questions: samuel.polk@tufts.edu
+Please write with any questions: sam.polk@outlook.com
 
 (c) Copyright Sam L. Polk, Tufts University, 2022.
