@@ -34,7 +34,12 @@ dataSelectedName = datasetNames{input(prompt)};
 % Load all optimal hyperparameter sets
 algNames = {'K-Means','K-Means+PCA', 'GMM+PCA', 'SC', 'SymNMF', 'KNN-SSC', 'FSSC', 'LUND', 'D-VIC'};
 OAs = zeros(1,9);
-kappas = zeros(1,9); 
+kappas = zeros(1,9);
+NMIs = zeros(1,9);
+AMIs = zeros(1,9);
+ARIs = zeros(1,9);
+FMIs = zeros(1,9);
+purities = zeros(1,9);
 runtimes = zeros(1,9);
 hyperparameters = cell(1,9);
 Cs = zeros(n,9);
@@ -70,17 +75,27 @@ disp('Ready to Analyze HSI data.')
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
 runtimetemp = zeros(numReplicates,1);
+NMItemp = zeros(numReplicates,1);
+AMItemp = zeros(numReplicates,1);
+ARItemp = zeros(numReplicates,1);
+FMItemp = zeros(numReplicates,1);
+puritytemp = zeros(numReplicates,1);
 Cstemp = zeros(n,numReplicates);
 
 for i = 1:numReplicates
     tic
     Cstemp(:,i) = kmeans(X,K);
     runtimetemp(i) = toc;
-    [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAtemp(i), kappatemp(i), ~, ~, ~, NMItemp(i), AMItemp(i), ARItemp(i), FMItemp(i), puritytemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
 OAs(1) = median(OAtemp);
 kappas(1) = median(kappatemp);
+NMIs(1) = median(NMItemp);
+AMIs(1) = median(AMItemp);
+ARIs(1) = median(ARItemp);
+FMIs(1) = median(FMItemp);
+purities(1) = median(puritytemp);
 runtimes(1) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(1)));
 Cs(:,1) = Cstemp(:,i);
@@ -90,6 +105,11 @@ Cs(:,1) = Cstemp(:,i);
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
 runtimetemp = zeros(numReplicates,1);
+NMItemp = zeros(numReplicates,1);
+AMItemp = zeros(numReplicates,1);
+ARItemp = zeros(numReplicates,1);
+FMItemp = zeros(numReplicates,1);
+puritytemp = zeros(numReplicates,1);
 Cstemp = zeros(n,numReplicates);
 
 for i = 1:numReplicates
@@ -99,11 +119,16 @@ for i = 1:numReplicates
     XPCA = SCORE(:,1:nPCs);
     Cstemp(:,i) = kmeans(XPCA,K);
     runtimetemp(i) = toc;
-    [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAtemp(i), kappatemp(i), ~, ~, ~, NMItemp(i), AMItemp(i), ARItemp(i), FMItemp(i), puritytemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
 OAs(2) = median(OAtemp);
 kappas(2) = median(kappatemp);
+NMIs(2) = median(NMItemp);
+AMIs(2) = median(AMItemp);
+ARIs(2) = median(ARItemp);
+FMIs(2) = median(FMItemp);
+purities(2) = median(puritytemp);
 runtimes(2) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(2)));
 Cs(:,2) = Cstemp(:,i);
@@ -113,17 +138,27 @@ Cs(:,2) = Cstemp(:,i);
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
 runtimetemp = zeros(numReplicates,1);
+NMItemp = zeros(numReplicates,1);
+AMItemp = zeros(numReplicates,1);
+ARItemp = zeros(numReplicates,1);
+FMItemp = zeros(numReplicates,1);
+puritytemp = zeros(numReplicates,1);
 Cstemp = zeros(n,numReplicates);
 
 for i = 1:numReplicates
     tic
     Cstemp(:,i) = evaluateGMMPCA(X,K);
     runtimetemp(i) = toc;
-    [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAtemp(i), kappatemp(i), ~, ~, ~, NMItemp(i), AMItemp(i), ARItemp(i), FMItemp(i), puritytemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
 OAs(3) = median(OAtemp);
 kappas(3) = median(kappatemp);
+NMIs(3) = median(NMItemp);
+AMIs(3) = median(AMItemp);
+ARIs(3) = median(ARItemp);
+FMIs(3) = median(FMItemp);
+purities(3) = median(puritytemp);
 runtimes(3) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(3)));
 Cs(:,3) = Cstemp(:,i);
@@ -135,6 +170,11 @@ NN = hyperparameters{4}.DiffusionNN;
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
 runtimetemp = zeros(numReplicates,1);
+NMItemp = zeros(numReplicates,1);
+AMItemp = zeros(numReplicates,1);
+ARItemp = zeros(numReplicates,1);
+FMItemp = zeros(numReplicates,1);
+puritytemp = zeros(numReplicates,1);
 Cstemp = zeros(n,numReplicates);
 
 for i = 1:numReplicates
@@ -151,11 +191,16 @@ for i = 1:numReplicates
     Cstemp(:,i) = SpectralClustering(G,K);
 
     runtimetemp(i) = toc;
-    [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAtemp(i), kappatemp(i), ~, ~, ~, NMItemp(i), AMItemp(i), ARItemp(i), FMItemp(i), puritytemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
 OAs(4) = median(OAtemp);
 kappas(4) = median(kappatemp);
+NMIs(4) = median(NMItemp);
+AMIs(4) = median(AMItemp);
+ARIs(4) = median(ARItemp);
+FMIs(4) = median(FMItemp);
+purities(4) = median(puritytemp);
 runtimes(4) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(4)));
 Cs(:,4) = Cstemp(:,i);
@@ -168,6 +213,11 @@ options.kk = NN;
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
 runtimetemp = zeros(numReplicates,1);
+NMItemp = zeros(numReplicates,1);
+AMItemp = zeros(numReplicates,1);
+ARItemp = zeros(numReplicates,1);
+FMItemp = zeros(numReplicates,1);
+puritytemp = zeros(numReplicates,1);
 Cstemp = zeros(n,numReplicates);
 
 for i = 1:numReplicates
@@ -181,11 +231,16 @@ for i = 1:numReplicates
     Cstemp(:,i) = symnmf_cluster(X, K, options, Idx_NN);
 
     runtimetemp(i) = toc;
-    [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAtemp(i), kappatemp(i), ~, ~, ~, NMItemp(i), AMItemp(i), ARItemp(i), FMItemp(i), puritytemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
 OAs(5) = median(OAtemp);
 kappas(5) = median(kappatemp);
+NMIs(5) = median(NMItemp);
+AMIs(5) = median(AMItemp);
+ARIs(5) = median(ARItemp);
+FMIs(5) = median(FMItemp);
+purities(5) = median(puritytemp);
 runtimes(5) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(5)));
 Cs(:,5) = Cstemp(:,i);
@@ -217,7 +272,7 @@ EigenVecs_Normalized = real(V(:,1:min(K,10))./vecnorm(V(:,1:min(K,10)),2,2));
 Cs(:,6) = kmeans(EigenVecs_Normalized, K);
 
 runtimes(6) = toc;
-[ OAs(6), kappas(6)] = calcAccuracy(Y, Cs(:,6), ~strcmp('Jasper Ridge', dataSelectedName));
+[ OAs(6), kappas(6), ~, ~, ~, NMIs(6), AMIs(6), ARIs(6), FMIs(6), purities(6)] = calcAccuracy(Y, Cs(:,6), ~strcmp('Jasper Ridge', dataSelectedName));
 
 %% FSSC
 
@@ -227,6 +282,11 @@ alpha_u = hyperparameters{7}.alpha_u;
 OAtemp = zeros(numReplicates,1);
 kappatemp = zeros(numReplicates,1);
 runtimetemp = zeros(numReplicates,1);
+NMItemp = zeros(numReplicates,1);
+AMItemp = zeros(numReplicates,1);
+ARItemp = zeros(numReplicates,1);
+FMItemp = zeros(numReplicates,1);
+puritytemp = zeros(numReplicates,1);
 Cstemp = zeros(n,numReplicates);
 
 for i = 1:numReplicates
@@ -236,11 +296,16 @@ for i = 1:numReplicates
     [~,~,Cstemp(:,i),~,~] = FSSC(X,11,NN,K,10,alpha_u);
 
     runtimetemp(i) = toc;
-    [ OAtemp(i), kappatemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
+    [ OAtemp(i), kappatemp(i), ~, ~, ~, NMItemp(i), AMItemp(i), ARItemp(i), FMItemp(i), puritytemp(i)] = calcAccuracy(Y, Cstemp(:,i), ~strcmp('Jasper Ridge', dataSelectedName));
 end
 
 OAs(7) = median(OAtemp);
 kappas(7) = median(kappatemp);
+NMIs(7) = median(NMItemp);
+AMIs(7) = median(AMItemp);
+ARIs(7) = median(ARItemp);
+FMIs(7) = median(FMItemp);
+purities(7) = median(puritytemp);
 runtimes(7) = median(runtimetemp);
 [~,i] = min(abs(OAtemp - OAs(7)));
 Cs(:,7) = Cstemp(:,i);
@@ -267,7 +332,7 @@ runtimes(8) = toc;
 % Run spectral clustering with the KNN-SSC weight matrix
 [Clusterings, runtimesLUND] = MLUND(X, hyperparameters{8}, G, density);
 
-[ OAs(8), kappas(8), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
+[ OAs(8), kappas(8), tIdx, ~, ~, NMIs(8), AMIs(8), ARIs(8), FMIs(8), purities(8)] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
 
 runtimes(8) = runtimes(8) + runtimesLUND(tIdx);
 Cs(:,8) = Clusterings.Labels(:,tIdx);
@@ -280,6 +345,11 @@ NN = max(Hyperparameters.DiffusionNN,Hyperparameters.DensityNN);
 OAtemp = NaN*zeros(numReplicates,1);
 kappatemp = NaN*zeros(numReplicates,1);
 runtimetemp = NaN*zeros(numReplicates,1);
+NMItemp = NaN*zeros(numReplicates,1);
+AMItemp = NaN*zeros(numReplicates,1);
+ARItemp = NaN*zeros(numReplicates,1);
+FMItemp = NaN*zeros(numReplicates,1);
+puritytemp = NaN*zeros(numReplicates,1);
 Cstemp = NaN*zeros(n,numReplicates);
 
 for k = 1:numReplicates 
@@ -306,7 +376,7 @@ for k = 1:numReplicates
     if G.EigenVals(2)<1 % Only use graphs with good spectral decompositions
 
         [Clusterings, DVISruntimes] = MLUND(X, Hyperparameters, G, harmmean([density./max(density), pixelPurity./max(pixelPurity)],2));
-        [ OAtemp(k), kappatemp(k), tIdx] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
+        [ OAtemp(k), kappatemp(k), tIdx, ~, ~, NMItemp(k), AMItemp(k), ARItemp(k), FMItemp(k), puritytemp(k)] = calcAccuracy(Y, Clusterings, ~strcmp('Jasper Ridge', dataSelectedName));
         Cstemp(:,k) = Clusterings.Labels(:,tIdx);
         runtimetemp(k) = runtimetemp(k) + DVISruntimes(tIdx);
     else
@@ -314,10 +384,20 @@ for k = 1:numReplicates
         OAtemp(k) = NaN;
         kappatemp(k) = NaN;
         runtimetemp(k) = NaN;
+        NMItemp(k) = NaN;
+        AMItemp(k) = NaN;
+        ARItemp(k) = NaN;
+        FMItemp(k) = NaN;
+        puritytemp(k) = NaN;
     end
 end
 OAs(9) = nanmedian(OAtemp);
 kappas(9) = nanmedian(kappatemp);
+NMIs(9) = nanmedian(NMItemp);
+AMIs(9) = nanmedian(AMItemp);
+ARIs(9) = nanmedian(ARItemp);
+FMIs(9) = nanmedian(FMItemp);
+purities(9) = nanmedian(puritytemp);
 runtimes(9) = nanmedian(runtimetemp);
 [~,i] = min(abs(OAtemp-OAs(9))); % clustering producing the closest OA to the mean performance
 Cs(:,9) = Cstemp(:,i);
@@ -327,26 +407,66 @@ Cs(:,9) = Cstemp(:,i);
 if visualizeOn
 
     figure
-    subplot(2,5,1)
+    subplot(1,2,1)
     imagesc(GT)
     title([dataSelectedName, ' Ground Truth Labels'])
     axis equal tight
     xticks([])
     yticks([])
     
-    for i = 1:9
-        
-        subplot(2,5,i+1)
-        if ~strcmp('Jasper Ridge', dataSelectedName)
-            C = zeros(size(Y));
-            C(Y>1) = alignClusterings(Y(Y>1)-1,Cs(Y>1,i));
-        else
-            C = alignClusterings(Y,Cs(:,i));
-        end 
-        imagesc(reshape(C, M,N)) 
-        title([algNames{i}, ' Clustering of ', dataSelectedName])
-        axis equal tight
-        xticks([])
-        yticks([])
+    gtLabels = unique(GT(:))';
+    cmGT = lines(max(gtLabels)+1);
+    colormap(gca, cmGT);
+    fprintf('RGB values for Ground Truth:\n');
+    for lbl = gtLabels
+        fprintf('Label %d -> [%f %f %f]\n', lbl, cmGT(lbl+1,:));
+    end    
+
+    % for i = 1:9
+    % 
+    %     subplot(1,5,i+1)
+    %     if ~strcmp('Jasper Ridge', dataSelectedName)
+    %         C = zeros(size(Y));
+    %         C(Y>1) = alignClusterings(Y(Y>1)-1,Cs(Y>1,i));
+    %     else
+    %         C = alignClusterings(Y,Cs(:,i));
+    %     end 
+    %     imagesc(reshape(C, M,N)) 
+    %     title([algNames{i}, ' Clustering of ', dataSelectedName])
+    %     axis equal tight
+    %     xticks([])
+    %     yticks([])
+    %     cLabels = unique(C(:))';
+    %     cmC = lines(max(cLabels)+1);
+    %     colormap(gca, cmC);
+    %     fprintf('RGB values for %s:\n', algNames{i});
+    %     for lbl = cLabels
+    %         fprintf('Label %d -> [%f %f %f]\n', lbl, cmC(lbl+1,:));
+    %     end
+    % end
+    subplot(1,2,2)
+    if ~strcmp('Jasper Ridge', dataSelectedName)
+        C = zeros(size(Y));
+        C(Y>1) = alignClusterings(Y(Y>1)-1,Cs(Y>1,9));
+    else
+        C = alignClusterings(Y,Cs(:,9));
     end
+    imagesc(reshape(C, M,N))
+    title(['D-VIC Clustering of ', dataSelectedName])
+    axis equal tight
+    xticks([])
+    yticks([])
+    % for lbl = gtLabels
+    %     fprintf('Label %d -> [%f %f %f]\n', lbl, cmGT(lbl+1,:));
+    % end 
 end
+
+% Display performance metrics
+disp('Overall Accuracy for each algorithm:'), disp(OAs)
+disp('Kappa for each algorithm:'), disp(kappas)
+disp('NMI for each algorithm:'), disp(NMIs)
+disp('AMI for each algorithm:'), disp(AMIs)
+disp('ARI for each algorithm:'), disp(ARIs)
+disp('FMI for each algorithm:'), disp(FMIs)
+disp('Purity for each algorithm:'), disp(purities)
+disp('Runtime for each algorithm:'), disp(runtimes)
