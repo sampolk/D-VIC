@@ -33,6 +33,4 @@ Users are free to modify the D-VIC toolbox as they wish. If you find it useful o
 - Murphy, J. M., & Polk, S. L. (2022). "A multiscale environment for learning by diffusion." _Applied and Computational Harmonic Analysis_, 57, 58-100.
 - Maggioni, M., & Murphy, J. M. (2019). Learning by Unsupervised Nonlinear Diffusion. _Journal of Machine Learning Research_, 20(160), 1-56.
 
-Please write with any questions: sam.polk@outlook.com
-
 (c) Copyright Sam L. Polk, Tufts University, 2022.
