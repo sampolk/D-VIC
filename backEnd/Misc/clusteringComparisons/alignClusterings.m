@@ -1,18 +1,19 @@
 
-function newLabels = alignClusterings(Y,Labels)
+function [newLabels, mapping] = alignClusterings(Y,Labels)
 % Input:
 %
-% -Y: another assignment of labels of the same dataset as Y 
+% -Y: another assignment of labels of the same dataset as Y
 % -Labels: one assignment of labels of a dataset
 %
 % Output:
 %
 % -NewLabels: new version of Labels, designed to maximize correspondence with Y
-
+% -mapping: mapping from original cluster indices in Labels to the indices
+%   in Y after alignment
 % Allocate memory
 n = length(Y);
 newLabels=zeros(n,1);
-
+mapping = zeros(length(unique(Labels)),1);
 % Find overlap between clusters   
 K = length(unique(Y)); 
 
@@ -31,8 +32,10 @@ overlap=overlap';
 cost=repmat(max(overlap,[],2),[1,K])-overlap;
 idxOptimal = munkres(cost); % optimal indices 
 
-% convert new Labels to 
+% convert new Labels to and record mapping
 for k=1:K
-    newLabels(Labels==k) = find(idxOptimal(:,k));
+    mappedLabel = find(idxOptimal(:,k));
+    newLabels(Labels==k) = mappedLabel;
+    mapping(k) = mappedLabel;
 end
 end
